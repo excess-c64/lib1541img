@@ -1,50 +1,149 @@
 #ifndef I1541_CBMDOSFS_H
 #define I1541_CBMDOSFS_H
 
+/** Declarations for the CbmdosFs class
+ * @file
+ */
+
+/** Some flags defining behavior of the filesystem */
 typedef enum CbmdosFsFlags
 {
-    CFF_COMPATIBLE = 0,
-    CFF_ALLOWLONGDIR = 1 << 0,
-    CFF_FILESONDIRTRACK = 1 << 1,
-    CFF_40TRACK = 1 << 2,
-    CFF_DOLPHINDOSBAM = 1 << 3,
-    CFF_SPEEDDOSBAM = 1 << 4,
-    CFF_ZEROFREE = 1 << 5,
+    CFF_COMPATIBLE = 0,             /**< no flags, 100% compatible to cbmdos */
+    CFF_ALLOWLONGDIR = 1 << 0,      /**< long directories (more than one track)
+                                         allowed */
+    CFF_FILESONDIRTRACK = 1 << 1,   /**< allow files to be placed on the
+                                         directory track */
+    CFF_40TRACK = 1 << 2,           /**< filesystem spans over 40 tracks
+                                         (instead of the default 35) */
+    CFF_DOLPHINDOSBAM = 1 << 3,     /**< create a BAM for extended tracks in
+                                         dolphindos format */
+    CFF_SPEEDDOSBAM = 1 << 4,       /**< create a BAM for extended tracks in
+                                         speeddos format */
+    CFF_ZEROFREE = 1 << 5,          /**< report no free blocks in directory */
 } CbmdosFsFlags;
 
+/** Filesystem options
+ * @struct CbmdosFsOptions cbmdosfs.h <1541img/cbmdosfs.h>
+ */
 typedef struct CbmdosFsOptions
 {
-    CbmdosFsFlags flags;
-    uint8_t dirInterleave;
-    uint8_t fileInterleave;
+    CbmdosFsFlags flags;            /**< filesystem flags */
+    uint8_t dirInterleave;          /**< sector interleave to use for
+                                         directory */
+    uint8_t fileInterleave;         /**< sector interleave to use for files */
 } CbmdosFsOptions;
 
+/** Status of a filesystem */
 typedef enum CbmdosFsStatus
 {
-    CFS_OK = 0,
-    CFS_INVALIDBAM = 1 << 0,
-    CFS_DISKFULL = 1 << 1,
-    CFS_DIRFULL = 1 << 2,
-    CFS_BROKEN = 1 << 3
+    CFS_OK = 0,                     /**< filesystem is valid */
+    CFS_INVALIDBAM = 1 << 0,        /**< the BAM of the filesystem is invalid */
+    CFS_DISKFULL = 1 << 1,          /**< the disk is full */
+    CFS_DIRFULL = 1 << 2,           /**< no space left in directory */
+    CFS_BROKEN = 1 << 3             /**< filesystem is invalid */
 } CbmdosFsStatus;
 
+/** Default options of a cbmdos filesystem.
+ * An instance of CbmdosFsOptions with the following values:
+ *
+ * * flags: **CFF_COMPATIBLE**
+ * * dirInterleave: **3**
+ * * fileInterleave: **10**
+ * @relates CbmdosFsOptions
+ */
 extern const CbmdosFsOptions CFO_DEFAULT;
 
 typedef struct CbmdosVfs CbmdosVfs;
 typedef struct D64 D64;
 
+/** Class modeling a concrete cbmdos filesystem.
+ * This models the concrete filesystem (mapping to the blocks of a D64 disk
+ * image) in cbmdos format. It's connected to a D64 disk image, and to a
+ * CbmdosVfs managing the actual files.
+ * @class CbmdosFs cbmdosfs.h <1541img/cbmdosfs.h>
+ */
 typedef struct CbmdosFs CbmdosFs;
 
+/** default constructor.
+ * Creates a new cbmdos filesystem
+ * @memberof CbmdosFs
+ * @param options filesystem options
+ * @returns a newly created CbmdosFs
+ */
 CbmdosFs *CbmdosFs_create(CbmdosFsOptions options);
+
+/** Create CbmdosFs from a D64 disk image.
+ * The filesystem is read from the given D64 image and associated with this
+ * image, so after this call, the image will be owned by the CbmdosFs.
+ * Therefore, you must not destroy the image yourself after constructing a
+ * CbmdosFs from it.
+ * @memberof CbmdosFs
+ * @param d64 the disk image
+ * @param options filesystem options, must be compatible with the image
+ * @returns a CbmdosFs reflecting the disk image, or NULL on error
+ */
 CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options);
+
+/** Create CbmdosFs from a cbmdos virtual filesystem
+ * @memberof CbmdosFs
+ * @param vfs the virtual filesystem
+ * @param options filesystem options
+ * @returns a CbmdosFs corresponding to the given vfs, or NULL on error
+ */
 CbmdosFs *CbmdosFs_fromVfs(CbmdosVfs *vfs, CbmdosFsOptions options);
+
+/** Status of the filesystem
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ * @returns the current status
+ */
 CbmdosFsStatus CbmdosFs_status(const CbmdosFs *self);
+
+/** Gets the read-only virtual filesystem
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ * @returns a read-only pointer to the virtual filesystem
+ */
 const CbmdosVfs *CbmdosFs_rvfs(const CbmdosFs *self);
+
+/** Gets the virtual filesystem
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ * @returns a pointer to the virtual filesystem
+ */
 CbmdosVfs *CbmdosFs_vfs(CbmdosFs *self);
+
+/** Gets the read-only disk image associated with this filesystem
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ * @returns a read-only pointer to the D64 disk image
+ */
 const D64 *CbmdosFs_image(const CbmdosFs *self);
+
+/** Gets the current options of the filesystem
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ * @returns the current options of the filesystem
+ */
 CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self);
+
+/** Sets options for the filesystem
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ * @param options the new options for the filesystem
+ */
 void CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options);
+
+/** Re-writes the filesystem to the disk image
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ */
 int CbmdosFs_rewrite(CbmdosFs *self);
+
+/** CbmdosFs destructor
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ */
 void CbmdosFs_destroy(CbmdosFs *self);
 
 #endif

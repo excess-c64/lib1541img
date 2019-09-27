@@ -20,4 +20,5 @@ defaults.mk
 /obj/
 /test/
 /dist/
+/doc/
 
