@@ -114,6 +114,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
                 logfmt(L_DEBUG, "readCbmdosVfs: found file \"%16s\" %s",
                         CbmdosFile_name(file, 0), CbmdosFileType_name(type));
 
+		uint16_t blocks = (direntry[0x1f] << 8) | direntry[0x1e];
 		if (dirdata)
 		{
 		    if (dirdata->size == dirdata->capa)
@@ -124,41 +125,50 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 		    }
 		    dirdata->entries[dirdata->size].starttrack = direntry[3];
 		    dirdata->entries[dirdata->size].startsector = direntry[4];
-		    dirdata->entries[dirdata->size].blocks =
-			(direntry[0x1f] << 8) | direntry[0x1e];
+		    dirdata->entries[dirdata->size].blocks = blocks;
 		    ++dirdata->size;
 		}
 
-                FileData *data = CbmdosFile_data(file);
-                uint8_t track = direntry[3];
-                uint8_t sector = direntry[4];
-                while (track)
-                {
-                    const Sector *filesector = D64_rsector(d64, track, sector);
-                    if (!filesector)
-                    {
-                        logmsg(L_ERROR, "readCbmdosVfs: corrupt filesystem.");
-                        CbmdosFile_destroy(file);
-                        file = 0;
-                        break;
-                    }
-                    const uint8_t *sectorbytes = Sector_rcontent(
-                            D64_rsector(d64, track, sector));
-                    track = sectorbytes[0];
-                    sector = sectorbytes[1];
-                    size_t appendsize = 254;
-                    if (!track) appendsize = sector-1;
-                    if (FileData_append(data, sectorbytes+2, appendsize) < 0)
-                    {
-                        logmsg(L_ERROR, "readCbmdosVfs: error appending "
-                                "to file.");
-                        CbmdosFile_destroy(file);
-                        file = 0;
-                        break;
-                    }
-                }
+		if (type != CFT_DEL)
+		{
+		    FileData *data = CbmdosFile_data(file);
+		    uint8_t track = direntry[3];
+		    uint8_t sector = direntry[4];
+		    while (track)
+		    {
+			const Sector *filesector = D64_rsector(
+				d64, track, sector);
+			if (!filesector)
+			{
+			    logmsg(L_ERROR,
+				    "readCbmdosVfs: corrupt filesystem.");
+			    CbmdosFile_destroy(file);
+			    file = 0;
+			    break;
+			}
+			const uint8_t *sectorbytes = Sector_rcontent(
+				D64_rsector(d64, track, sector));
+			track = sectorbytes[0];
+			sector = sectorbytes[1];
+			size_t appendsize = 254;
+			if (!track) appendsize = sector-1;
+			if (FileData_append(data, sectorbytes+2,
+				    appendsize) < 0)
+			{
+			    logmsg(L_ERROR, "readCbmdosVfs: error appending "
+				    "to file.");
+			    CbmdosFile_destroy(file);
+			    file = 0;
+			    break;
+			}
+		    }
+		}
                 if (file)
                 {
+		    if (CbmdosFile_realBlocks(file) != blocks)
+		    {
+			CbmdosFile_setForcedBlocks(file, blocks);
+		    }
                     CbmdosVfs_append(vfs, file);
                 }
             }

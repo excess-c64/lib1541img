@@ -144,6 +144,21 @@ int CbmdosFile_setRecordLength(CbmdosFile *self, uint8_t recordLength)
     return 0;
 }
 
+uint16_t CbmdosFile_realBlocks(const CbmdosFile *self)
+{
+    if (self->type == CFT_DEL || !self->data) return 0;
+    size_t size = FileData_size(self->data);
+    uint16_t blocks = size / 254;
+    if (size % 254) ++blocks;
+    return blocks;
+}
+
+uint16_t CbmdosFile_blocks(const CbmdosFile *self)
+{
+    if (self->forcedBlocks != 0xffff) return self->forcedBlocks;
+    return CbmdosFile_realBlocks(self);
+}
+
 uint16_t CbmdosFile_forcedBlocks(const CbmdosFile *self)
 {
     return self->forcedBlocks;
@@ -178,6 +193,16 @@ void CbmdosFile_setClosed(CbmdosFile *self, int closed)
     self->closed = closed;
     CbmdosFileEventArgs args = { CFE_CLOSEDCHANGED };
     Event_raise(self->changedEvent, &args);
+}
+
+void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line)
+{
+    int blocklen = sprintf((char *)line, "%u", CbmdosFile_blocks(self));
+    memset(line + blocklen, 0xa0, 24 - blocklen);
+    memcpy(line + 6, self->name, self->nameLength);
+    memcpy(line + 24, CbmdosFileType_name(self->type), 3);
+    line[5] = 0x22;
+    line[22] = 0x22;
 }
 
 Event *CbmdosFile_changedEvent(CbmdosFile *self)

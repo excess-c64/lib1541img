@@ -8,7 +8,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/** The maximum size a single 4-pack or 5-pack zipcode file can have */
+/** The maximum size a single 4-pack or 5-pack zipcode file can have
+ * @relatesalso D64
+ */
 #define MAXZCFILESIZE (175*258 + 2)
 
 typedef struct D64 D64;

@@ -103,6 +103,22 @@ uint8_t CbmdosFile_recordLength(const CbmdosFile *self);
  */
 int CbmdosFile_setRecordLength(CbmdosFile *self, uint8_t recordLength);
 
+/** Number of blocks the file currently needs on disk
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @returns number of blocks
+ */
+uint16_t CbmdosFile_realBlocks(const CbmdosFile *self);
+
+/** Number of blocks actually shown in directory.
+ * This is either the actual number of blocks, or, if set, the "forced" block
+ * size.
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @returns number of blocks
+ */
+uint16_t CbmdosFile_blocks(const CbmdosFile *self);
+
 /** Number of blocks forced to be shown in directory.
  * @memberof CbmdosFile
  * @param self the cbmdos file
@@ -146,6 +162,14 @@ int CbmdosFile_closed(const CbmdosFile *self);
  * @param closed 1 sets file closed, 0 unclosed (default is 1)
  */
 void CbmdosFile_setClosed(CbmdosFile *self, int closed);
+
+/** Get a directory entry line.
+ * Gets a line as displayed in a directory on the C64, in PETSCII encoding
+ * @param self the cbmdos file
+ * @param line a pointer to exactly 27 bytes, the line in PETSCII encoding
+ *     will be written here, without any 0-termination.
+ */
+void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line);
 
 /** Event that gets raised on any changes to the file
  * @memberof CbmdosFile

@@ -1,25 +1,22 @@
 #ifndef I1541_LOG_H
 #define I1541_LOG_H
 
+/** Declarations for the Logging module
+ * @file
+ */
+
 /** @defgroup Logging Logging
  * Library output facilities
  *
- *     #include <1541img/log.h>
- *
+ * `#include <1541img/log.h>`
  * @{
- */
-
-/** Logging adapter for library output
  *
- *      #include <1541img/log.h>
- *
- * This file contains functions to control how lib1541img will output
+ * This module contains functions to control how lib1541img will output
  * informative, diagnostic and error messages.
  *
- * If you don't call any of the functions from this file, lib1541img will
+ * If you don't call any of the functions from this module, lib1541img will
  * stay completely silent.
  *
- * @file
  */
 
 #include <stdio.h>
