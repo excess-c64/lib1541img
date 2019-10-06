@@ -538,6 +538,54 @@ int CbmdosFs_rewrite(CbmdosFs *self)
     return 0;
 }
 
+uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self)
+{
+    uint16_t free = 664;
+    if (self->options.flags & (CFF_DOLPHINDOSBAM | CFF_SPEEDDOSBAM))
+    {
+	free += 85;
+    }
+    unsigned filecount = CbmdosVfs_fileCount(self->vfs);
+    if (filecount > 144)
+    {
+	if (!(self->options.flags & CFF_ALLOWLONGDIR)) return 0xffff;
+	unsigned extrafiles = filecount - 144;
+	unsigned dirblocks = extrafiles / 8;
+	if (extrafiles % 8) ++dirblocks;
+	if (dirblocks > free) return 0xffff;
+	free -= dirblocks;
+    }
+    else if (self->options.flags & CFF_FILESONDIRTRACK)
+    {
+	unsigned freefiles = 144 - filecount;
+	unsigned freedirblocks = freefiles / 8;
+	free += freedirblocks;
+    }
+    for (unsigned n = 0; n < filecount; ++n)
+    {
+	const CbmdosFile *file = CbmdosVfs_rfile(self->vfs, n);
+	uint16_t fileBlocks = CbmdosFile_realBlocks(file);
+	if (fileBlocks > free) return 0xffff;
+	free -= fileBlocks;
+    }
+    return free;
+}
+
+void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line)
+{
+    uint16_t rawFree = CbmdosFs_freeBlocks(self);
+    int free = (rawFree == 0xffff) ? -1 : rawFree;
+    char freestr[4];
+    snprintf(freestr, 4, "%d", free);
+    memset(line, 0xa0, 16);
+    const char *blocksfree = " BLOCKS FREE.";
+    uint8_t *w = line;
+    const char *r = freestr;
+    while (*r) *w++ = *r++;
+    r = blocksfree;
+    while (*r) *w++ = *r++;
+}
+
 void CbmdosFs_destroy(CbmdosFs *self)
 {
     if (!self) return;

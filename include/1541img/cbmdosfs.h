@@ -5,6 +5,8 @@
  * @file
  */
 
+#include <stdint.h>
+
 /** Some flags defining behavior of the filesystem */
 typedef enum CbmdosFsFlags
 {
@@ -139,6 +141,32 @@ void CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options);
  * @param self the cbmdos filesystem
  */
 int CbmdosFs_rewrite(CbmdosFs *self);
+
+/** The number of free blocks in this filesystem.
+ * This returns the number of free blocks as reported by cbmdos (optionally
+ * with speeddos or dolphin dos for a 40track filesystem). Note if the option
+ * CFF_ZEROFREE is set, this will return 0.
+ * If the filesystem is too full (so it can't be written to a disk), this will
+ * return the special error value 0xffff.
+ * This is a "best guess" implementation, that can return wrong values in
+ * special cases like manipulated file block sizes or allowing to put files
+ * on the directory track.
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ * @returns number of free blocks, or 0xffff on error
+ */
+uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self);
+
+/** Get the "free blocks message" as shown in the directory in the C64.
+ * This gets the "xxx blocks free." message as shown in the directory, using
+ * the number calculated by CbmdosFs_freeBlocks(), as a byte array containing
+ * PETSCII characters.
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ * @param line a pointer to exactly 16 bytes, the line in PETSCII encoding
+ *     will be written here, without any 0-termination
+ */
+void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line);
 
 /** CbmdosFs destructor
  * @memberof CbmdosFs

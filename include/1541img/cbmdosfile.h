@@ -165,6 +165,7 @@ void CbmdosFile_setClosed(CbmdosFile *self, int closed);
 
 /** Get a directory entry line.
  * Gets a line as displayed in a directory on the C64, in PETSCII encoding
+ * @memberof CbmdosFile
  * @param self the cbmdos file
  * @param line a pointer to exactly 27 bytes, the line in PETSCII encoding
  *     will be written here, without any 0-termination.
