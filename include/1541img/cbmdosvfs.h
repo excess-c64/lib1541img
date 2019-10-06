@@ -142,6 +142,16 @@ int CbmdosVfs_append(CbmdosVfs *self, CbmdosFile *file);
  */
 int CbmdosVfs_insert(CbmdosVfs *self, CbmdosFile *file, unsigned pos);
 
+/** Get the header line of a directory.
+ * Gets a header line as displayed in a directory on the C64, without the
+ * leading "0 " line number, in PETSCII encoding
+ * @memberof CbmdosVfs
+ * @param self the cbmdos vfs
+ * @param line a pointer to exactly 24 bytes, the line in PETSCII encoding
+ *     will be written here, without any 0-termination.
+ */
+void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line);
+
 /** Event that gets raised on any changes to the filesystem
  * @memberof CbmdosVfs
  * @param self the cbmdos vfs

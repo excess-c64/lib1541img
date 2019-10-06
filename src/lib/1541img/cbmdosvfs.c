@@ -246,6 +246,17 @@ int CbmdosVfs_insert(CbmdosVfs *self, CbmdosFile *file, unsigned pos)
     return 0;
 }
 
+void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line)
+{
+    memset(line, 0xa0, 24);
+    line[0] = 0x22;
+    line[17] = 0x22;
+    line[22] = 0x32;
+    line[23] = 0x41;
+    memcpy(line+1, self->name, self->nameLength);
+    memcpy(line+19, self->id, self->idLength);
+}
+
 Event *CbmdosVfs_changedEvent(CbmdosVfs *self)
 {
     return self->changedEvent;
