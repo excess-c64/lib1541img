@@ -1,5 +1,8 @@
 #ifndef I1541_CBMDOSVFS_H
 #define I1541_CBMDOSVFS_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Declarations for the CbmdosVfs class
  * @file
@@ -165,4 +168,7 @@ Event *CbmdosVfs_changedEvent(CbmdosVfs *self);
  */
 void CbmdosVfs_destroy(CbmdosVfs *self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

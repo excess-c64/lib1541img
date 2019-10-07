@@ -1,5 +1,8 @@
 #ifndef I1541_ZCFILESET_H
 #define I1541_ZCFILESET_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Declarations for the ZcFileSet class
  * @file
@@ -113,4 +116,7 @@ int ZcFileSet_saveVfs(const ZcFileSet *self, CbmdosVfs *vfs);
  */
 void ZcFileSet_destroy(ZcFileSet *self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

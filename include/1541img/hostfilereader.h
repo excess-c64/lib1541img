@@ -1,5 +1,8 @@
 #ifndef I1541_HOSTFILEREADER_H
 #define I1541_HOSTFILEREADER_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Contains a function to read FileData from a (host) file
  * @file
@@ -19,4 +22,7 @@ typedef struct FileData FileData;
  */
 FileData *readHostFile(FILE *file);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

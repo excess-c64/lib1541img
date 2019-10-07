@@ -1,5 +1,8 @@
 #ifndef I1541_ZC45EXTRACTOR_H
 #define I1541_ZC45EXTRACTOR_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Contains a function for extracting a D64 disc image from zipcode
  * @file
@@ -20,4 +23,7 @@ typedef struct ZcFileSet ZcFileSet;
  */
 D64 *extractZc45(const ZcFileSet *fileset);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

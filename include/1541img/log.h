@@ -1,5 +1,8 @@
 #ifndef I1541_LOG_H
 #define I1541_LOG_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Declarations for the Logging module
  * @file
@@ -65,5 +68,8 @@ void setMaxLogLevel(LogLevel level);
 
 /**@}*/
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

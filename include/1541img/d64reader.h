@@ -1,5 +1,8 @@
 #ifndef I1541_D64READER_H
 #define I1541_D64READER_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Contains a function to read a D64 disc image from a (host) file
  * @file
@@ -19,4 +22,7 @@ typedef struct D64 D64;
  */
 D64 *readD64(FILE *file);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

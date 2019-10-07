@@ -1,5 +1,8 @@
 #ifndef I1541_SECTOR_H
 #define I1541_SECTOR_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** declarations for the Sector class
  * @file
@@ -78,4 +81,7 @@ void Sector_setSectorNum(Sector *self, uint8_t sectornum);
  */
 void Sector_destroy(Sector *self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

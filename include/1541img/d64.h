@@ -1,5 +1,8 @@
 #ifndef I1541_D64_H
 #define I1541_D64_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** declarations for the D64 class
  * @file
@@ -84,4 +87,7 @@ Sector *D64_sector(D64 *self, uint8_t tracknum, uint8_t sectornum);
  */
 void D64_destroy(D64 *self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

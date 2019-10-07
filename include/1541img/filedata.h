@@ -1,5 +1,8 @@
 #ifndef I1541_FILEDATA_H
 #define I1541_FILEDATA_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Declarations for the FileData class
  * @file
@@ -81,4 +84,7 @@ Event *FileData_changedEvent(FileData *self);
  */
 void FileData_destroy(FileData *self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,5 +1,8 @@
 #ifndef I1541_CBMDOSVFSREADER_H
 #define I1541_CBMDOSVFSREADER_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Contains a function to read a cbmdos vfs from a D64 disc image
  * @file
@@ -20,4 +23,7 @@ typedef struct CbmdosVfs CbmdosVfs;
  */
 int readCbmdosVfs(CbmdosVfs *vfs, const D64 *d64);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,5 +1,8 @@
 #ifndef I1541_EVENT_H
 #define I1541_EVENT_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** declarations for the Event class
  * @file
@@ -66,4 +69,7 @@ void Event_raise(Event *self, const void *args);
  */
 void Event_destroy(Event *self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,5 +1,8 @@
 #ifndef I1541_TRACK_H
 #define I1541_TRACK_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** declarations for the Track class
  * @file
@@ -56,4 +59,7 @@ uint8_t Track_sectors(const Track *self);
  */
 void Track_destroy(Track *self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

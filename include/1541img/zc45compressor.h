@@ -1,5 +1,8 @@
 #ifndef I1541_ZC45COMPRESSOR_H
 #define I1541_ZC45COMPRESSOR_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Contains a function for compressing a D64 disc image to zipcode
  * @file
@@ -20,4 +23,7 @@ typedef struct ZcFileSet ZcFileSet;
  */
 ZcFileSet *compressZc45(const D64 *d64);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

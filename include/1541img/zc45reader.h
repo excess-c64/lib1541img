@@ -1,5 +1,8 @@
 #ifndef I1541_ZC45READER_H
 #define I1541_ZC45READER_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Contains a function for extracting a single 4-pack or 5-pack zipcode file
  * @file
@@ -24,4 +27,7 @@ typedef struct D64 D64;
  */
 int zc45_read(D64 *d64, const uint8_t *zcfile, size_t zcfilelen);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

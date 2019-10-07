@@ -1,5 +1,8 @@
 #ifndef I1541_CBMDOSFILEEVENTARGS_H
 #define I1541_CBMDOSFILEEVENTARGS_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Declaration of CbmdosFile Event arguments
  * @file
@@ -21,4 +24,7 @@ typedef struct CbmdosFileEventArgs
     } what;     /**< describes what happened to the file */
 } CbmdosFileEventArgs;
 
+#ifdef __cplusplus
+}
+#endif
 #endif

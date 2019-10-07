@@ -1,5 +1,8 @@
 #ifndef I1541_CBMDOSFILE_H
 #define I1541_CBMDOSFILE_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Declarations for the CbmDosFile class
  * @file
@@ -185,4 +188,7 @@ Event *CbmdosFile_changedEvent(CbmdosFile *self);
  */
 void CbmdosFile_destroy(CbmdosFile *self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

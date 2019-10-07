@@ -1,5 +1,8 @@
 #ifndef I1541_CBMDOSVFSEVENTARGS_H
 #define I1541_CBMDOSVFSEVENTARGS_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Declaration of CbmdosVfs Event arguments
  * @file
@@ -24,4 +27,7 @@ typedef struct CbmdosVfsEventArgs
                                  affected by the change */
 } CbmdosVfsEventArgs;
 
+#ifdef __cplusplus
+}
+#endif
 #endif

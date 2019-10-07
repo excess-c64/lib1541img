@@ -1,5 +1,8 @@
 #ifndef I1541_ZC45WRITER_H
 #define I1541_ZC45WRITER_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Contains a function for compressing a single 4-pack or 5-pack zipcode file
  * @file
@@ -33,4 +36,7 @@ typedef struct D64 D64;
 size_t zc45_write(uint8_t *zcfile, size_t zcfilelen, int zcfileno,
         const D64 *d64);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

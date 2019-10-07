@@ -1,5 +1,8 @@
 #ifndef I1541_CBMDOSFS_H
 #define I1541_CBMDOSFS_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Declarations for the CbmdosFs class
  * @file
@@ -174,4 +177,7 @@ void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line);
  */
 void CbmdosFs_destroy(CbmdosFs *self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
