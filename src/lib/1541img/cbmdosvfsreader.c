@@ -28,8 +28,8 @@ static int parseTrackBam(uint8_t *bamdata, uint8_t sectors,
 	    tmp[sectno] = 1;
 	}
     }
-    if (sectfree != trackbam[0]) return -1;
     memcpy(bamdata, tmp, 21);
+    if (sectfree != trackbam[0]) return -1;
     return 0;
 }
 
