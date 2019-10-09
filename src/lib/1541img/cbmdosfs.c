@@ -98,7 +98,7 @@ static void deleteChain(CbmdosFs *self, uint8_t nexttrack, uint8_t nextsect)
         self->bam[nexttrack-1][nextsect] = 0;
         nexttrack = dir[0];
         nextsect = dir[1];
-    } while (nexttrack);
+    } while (nexttrack && self->bam[nexttrack-1][nextsect] == 1);
 }
 
 static uint8_t freeSectorOnTrack(CbmdosFs *self, uint8_t trackno,
@@ -235,7 +235,6 @@ static void scratchFile(CbmdosFs *self, unsigned pos)
 
 static int updateFile(CbmdosFs *self, unsigned pos)
 {
-    scratchFile(self, pos);
     uint8_t trackno;
     uint8_t sectno;
     uint16_t blocks = 0;
@@ -243,11 +242,20 @@ static int updateFile(CbmdosFs *self, unsigned pos)
     const CbmdosFile *file = CbmdosVfs_rfile(self->vfs, pos);
     if (CbmdosFile_type(file) == CFT_DEL)
     {
-	self->dir.entries[pos].blocks = 0;
+	uint16_t forcedBlocks = CbmdosFile_forcedBlocks(file);
+	if (forcedBlocks != 0xffff)
+	{
+	    self->dir.entries[pos].blocks = forcedBlocks;
+	}
+	else
+	{
+	    self->dir.entries[pos].blocks = 0;
+	}
 	self->dir.entries[pos].starttrack = 0;
 	self->dir.entries[pos].startsector = 0;
 	return 0;
     }
+    scratchFile(self, pos);
     const FileData *fdat = CbmdosFile_rdata(file);
     size_t length = FileData_size(fdat);
     if (!length) return 0;
