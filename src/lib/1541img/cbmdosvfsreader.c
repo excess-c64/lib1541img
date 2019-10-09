@@ -19,7 +19,7 @@ static int parseTrackBam(uint8_t *bamdata, uint8_t sectors,
     uint8_t sectfree = 0;
     for (uint8_t sectno = 0; sectno < sectors; ++sectno)
     {
-	if (trackbam[1+sectno/8] & (1U << (7 - sectno%8)))
+	if (trackbam[1+sectno/8] & (1U << (sectno%8)))
 	{
 	    ++sectfree;
 	}

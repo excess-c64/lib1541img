@@ -73,6 +73,11 @@ int CbmdosFile_setType(CbmdosFile *self, CbmdosFileType type)
         logmsg(L_WARNING, "CbmdosFile_setType: invalid type.");
         return -1;
     }
+    if (type == self->type) return 0;
+    if (type == CFT_DEL)
+    {
+	CbmdosFile_setData(self, FileData_create());
+    }
     self->type = type;
     CbmdosFileEventArgs args = { CFE_TYPECHANGED };
     Event_raise(self->changedEvent, &args);

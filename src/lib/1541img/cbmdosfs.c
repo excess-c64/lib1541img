@@ -44,7 +44,7 @@ static void createTrackBam(CbmdosFs *self, uint8_t *tbam, uint8_t trackno)
         if (self->bam[trackno-1][sectno])
         {
             --tbam[0];
-            tbam[1+sectno/8] ^= (1U << (7 - sectno%8));
+            tbam[1+sectno/8] ^= (1U << (sectno%8));
         }
     }
     if (self->options.flags & CFF_ZEROFREE)
