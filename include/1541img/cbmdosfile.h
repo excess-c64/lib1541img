@@ -91,6 +91,15 @@ const FileData *CbmdosFile_rdata(const CbmdosFile *self);
  */
 FileData *CbmdosFile_data(CbmdosFile *self);
 
+/** Set new file contents.
+ * The current file contents are replaced. The new contents supplied will be
+ * owned by this CbmdosFile, so don't free them yourself.
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @param data the new file contents
+ */
+void CbmdosFile_setData(CbmdosFile *self, FileData *data);
+
 /** The record length of a REL file
  * @memberof CbmdosFile
  * @param self the cbmdos file

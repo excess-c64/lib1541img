@@ -127,6 +127,16 @@ FileData *CbmdosFile_data(CbmdosFile *self)
     return self->data;
 }
 
+void CbmdosFile_setData(CbmdosFile *self, FileData *data)
+{
+    Event_unregister(FileData_changedEvent(self->data), self, fileDataHandler);
+    FileData_destroy(self->data);
+    self->data = data;
+    Event_register(FileData_changedEvent(self->data), self, fileDataHandler);
+    CbmdosFileEventArgs ea = { CFE_DATACHANGED };
+    Event_raise(self->changedEvent, &ea);
+}
+
 uint8_t CbmdosFile_recordLength(const CbmdosFile *self)
 {
     return self->recordLength;
