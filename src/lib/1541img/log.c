@@ -30,6 +30,7 @@ static void writeFile(LogLevel level, const char *message, void *data)
     fputs(levels[level], target);
     fputs(message, target);
     fputc('\n', target);
+    fflush(target);
 }
 
 void logmsg(LogLevel level, const char *message)
