@@ -93,6 +93,11 @@ static void deleteChain(CbmdosFs *self, uint8_t nexttrack, uint8_t nextsect)
     if (self->bam[nexttrack-1][nextsect] != 1) return;
     do
     {
+        if (nexttrack == 18 && nextsect == 0)
+        {
+            logmsg(L_WARNING, "CbmdosFs: refusing to delete BAM at [18:0]");
+            return;
+        }
         uint8_t *dir = Sector_content(
                 D64_sector(self->d64, nexttrack, nextsect));
         self->bam[nexttrack-1][nextsect] = 0;
@@ -240,7 +245,9 @@ static int updateFile(CbmdosFs *self, unsigned pos)
     uint16_t blocks = 0;
 
     const CbmdosFile *file = CbmdosVfs_rfile(self->vfs, pos);
-    if (CbmdosFile_type(file) == CFT_DEL)
+    const FileData *fdat = CbmdosFile_rdata(file);
+    size_t length = FileData_size(fdat);
+    if (CbmdosFile_type(file) == CFT_DEL || !length)
     {
 	uint16_t forcedBlocks = CbmdosFile_forcedBlocks(file);
 	if (forcedBlocks != 0xffff)
@@ -255,10 +262,8 @@ static int updateFile(CbmdosFs *self, unsigned pos)
 	self->dir.entries[pos].startsector = 0;
 	return 0;
     }
+
     scratchFile(self, pos);
-    const FileData *fdat = CbmdosFile_rdata(file);
-    size_t length = FileData_size(fdat);
-    if (!length) return 0;
 
     if (findStartSector(self, &trackno, &sectno) < 0) goto fail;
     self->dir.entries[pos].starttrack = trackno;
@@ -268,9 +273,9 @@ static int updateFile(CbmdosFs *self, unsigned pos)
     {
 	self->bam[trackno-1][sectno] = 1;
 	uint8_t *block = Sector_content(D64_sector(self->d64, trackno, sectno));
+	block[0] = 0;
 	if (length <= 254)
 	{
-	    block[0] = 0;
 	    block[1] = length+1;
 	    memcpy(block+2, content, length);
 	    if (length < 254)

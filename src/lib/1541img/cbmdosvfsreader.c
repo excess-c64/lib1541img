@@ -87,6 +87,10 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 
     const Sector *dirsect = D64_rsector(d64, 18, 1);
 
+    uint8_t rdmap[40][21] = { 0 };
+    rdmap[17][0] = 1;
+    rdmap[17][1] = 1;
+
     while (dirsect)
     {
         const uint8_t *dirbytes = Sector_rcontent(dirsect);
@@ -144,8 +148,19 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 				    "readCbmdosVfs: corrupt filesystem.");
 			    CbmdosFile_destroy(file);
 			    file = 0;
+                            dirsect = 0;
 			    break;
 			}
+                        if (rdmap[track-1][sector])
+                        {
+                            logmsg(L_ERROR,
+                                    "readCbmdosVfs: corrupt filesystem.");
+                            CbmdosFile_destroy(file);
+                            file = 0;
+                            dirsect = 0;
+                            break;
+                        }
+                        rdmap[track-1][sector] = 1;
 			const uint8_t *sectorbytes = Sector_rcontent(
 				D64_rsector(d64, track, sector));
 			track = sectorbytes[0];
@@ -159,6 +174,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 				    "to file.");
 			    CbmdosFile_destroy(file);
 			    file = 0;
+                            dirsect = 0;
 			    break;
 			}
 		    }
@@ -173,7 +189,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
                 }
             }
         }
-        if (dirbytes[0])
+        if (dirsect && dirbytes[0])
         {
             dirsect = D64_rsector(d64, dirbytes[0], dirbytes[1]);
             if (!dirsect)
@@ -181,6 +197,13 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
                 logmsg(L_ERROR, "readCbmdosVfs: corrupt filesystem.");
 		rc = -1;
             }
+            if (rdmap[dirbytes[0]-1][dirbytes[1]])
+            {
+                logmsg(L_ERROR, "readCbmdosVfs: corrupt filesystem.");
+                rc = -1;
+                dirsect = 0;
+            }
+            rdmap[dirbytes[0]-1][dirbytes[1]] = 1;
         }
         else dirsect = 0;
     }
