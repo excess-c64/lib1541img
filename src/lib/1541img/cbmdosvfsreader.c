@@ -87,7 +87,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 
     const Sector *dirsect = D64_rsector(d64, 18, 1);
 
-    uint8_t rdmap[40][21] = { 0 };
+    uint8_t rdmap[40][21] = { { 0 } };
     rdmap[17][0] = 1;
     rdmap[17][1] = 1;
 
