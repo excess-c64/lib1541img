@@ -213,11 +213,15 @@ void CbmdosFile_setClosed(CbmdosFile *self, int closed)
 void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line)
 {
     int blocklen = sprintf((char *)line, "%u", CbmdosFile_blocks(self));
-    memset(line + blocklen, 0xa0, 24 - blocklen);
+    memset(line + blocklen, 0xa0, 28 - blocklen);
     memcpy(line + 6, self->name, self->nameLength);
     memcpy(line + 24, CbmdosFileType_name(self->type), 3);
     line[5] = 0x22;
-    line[22] = 0x22;
+    uint8_t endidx = 6;
+    while (line[endidx] != 0xa0) ++endidx;
+    line[endidx] = 0x22;
+    if (!self->closed) line[23] = 0x2a;
+    if (self->locked) line[27] = 0x3c;
 }
 
 Event *CbmdosFile_changedEvent(CbmdosFile *self)

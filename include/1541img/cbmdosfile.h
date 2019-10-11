@@ -179,7 +179,7 @@ void CbmdosFile_setClosed(CbmdosFile *self, int closed);
  * Gets a line as displayed in a directory on the C64, in PETSCII encoding
  * @memberof CbmdosFile
  * @param self the cbmdos file
- * @param line a pointer to exactly 27 bytes, the line in PETSCII encoding
+ * @param line a pointer to exactly 28 bytes, the line in PETSCII encoding
  *     will be written here, without any 0-termination.
  */
 void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line);

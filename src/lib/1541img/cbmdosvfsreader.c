@@ -115,7 +115,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
                 while (filenamelen && direntry[filenamelen + 4] == 0xa0)
                     --filenamelen;
                 CbmdosFile_setName(file, (const char *)direntry+5, filenamelen);
-                logfmt(L_DEBUG, "readCbmdosVfs: found file \"%16s\" %s",
+                logfmt(L_DEBUG, "readCbmdosVfs: found file \"%s\" %s",
                         CbmdosFile_name(file, 0), CbmdosFileType_name(type));
 
 		uint16_t blocks = (direntry[0x1f] << 8) | direntry[0x1e];
