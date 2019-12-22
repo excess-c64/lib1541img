@@ -145,6 +145,18 @@ int CbmdosVfs_append(CbmdosVfs *self, CbmdosFile *file);
  */
 int CbmdosVfs_insert(CbmdosVfs *self, CbmdosFile *file, unsigned pos);
 
+/** Move a file to another position
+ * @memberof CbmdosVfs
+ * @param self the cbmdos vfs
+ * @param to the position to move the file to (starting at 0). If this is
+ *	     greater or equal to the number of files, the file is moved to the
+ *	     end.
+ * @param from the original position of the file to move (starting at 0). This
+ *             must be smaller than the number of files.
+ * @returns 0 on success, -1 on error
+ */
+int CbmdosVfs_move(CbmdosVfs *self, unsigned to, unsigned from);
+
 /** Get the header line of a directory.
  * Gets a header line as displayed in a directory on the C64, without the
  * leading "0 " line number, in PETSCII encoding

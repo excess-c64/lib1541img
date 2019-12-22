@@ -320,6 +320,8 @@ static void vfsChanged(void *receiver, int id, const void *sender,
     const CbmdosVfsEventArgs *ea = args;
     switch (ea->what)
     {
+	DirEntry tmpEntry;
+
 	case CVE_DOSVERCHANGED:
 	case CVE_NAMECHANGED:
 	case CVE_IDCHANGED:
@@ -344,7 +346,8 @@ static void vfsChanged(void *receiver, int id, const void *sender,
 	    {
 		memmove(self->dir.entries + ea->filepos + 1,
 			self->dir.entries + ea->filepos,
-			self->dir.size - ea->filepos);
+			(self->dir.size - ea->filepos)
+			* sizeof *self->dir.entries);
 	    }
 	    ++self->dir.size;
 	    self->dir.entries[ea->filepos].starttrack = 0;
@@ -378,8 +381,40 @@ static void vfsChanged(void *receiver, int id, const void *sender,
 	    {
 		memmove(self->dir.entries + ea->filepos,
 			self->dir.entries + ea->filepos + 1,
-			self->dir.size - ea->filepos);
+			(self->dir.size - ea->filepos)
+			* sizeof *self->dir.entries);
 	    }
+	    updateDir(self);
+	    updateBam(self);
+	    break;
+
+	case CVE_FILEMOVED:
+	    if (ea->filepos >= self->dir.size
+		    || ea->targetpos >= self->dir.size)
+	    {
+		logmsg(L_ERROR, "CbmdosFs: inconsistent state, file moved to "
+			"or from invalid position.");
+		self->status |= CFS_BROKEN;
+		break;
+	    }
+	    memcpy(&tmpEntry, self->dir.entries + ea->filepos,
+		    sizeof tmpEntry);
+	    if (ea->targetpos > ea->filepos)
+	    {
+		memmove(self->dir.entries + ea->filepos,
+			self->dir.entries + ea->filepos + 1,
+			(ea->targetpos - ea->filepos)
+			* sizeof *self->dir.entries);
+	    }
+	    else
+	    {
+		memmove(self->dir.entries + ea->targetpos + 1,
+			self->dir.entries + ea->targetpos,
+			(ea->filepos - ea->targetpos)
+			* sizeof *self->dir.entries);
+	    }
+	    memcpy(self->dir.entries + ea->targetpos, &tmpEntry,
+		    sizeof *self->dir.entries);
 	    updateDir(self);
 	    updateBam(self);
 	    break;

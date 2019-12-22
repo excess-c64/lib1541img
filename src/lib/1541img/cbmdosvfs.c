@@ -246,6 +246,32 @@ int CbmdosVfs_insert(CbmdosVfs *self, CbmdosFile *file, unsigned pos)
     return 0;
 }
 
+int CbmdosVfs_move(CbmdosVfs *self, unsigned to, unsigned from)
+{
+    if (from >= self->fileCount) return -1;
+    if (to >= self->fileCount) to = self->fileCount - 1;
+    if (to == from) return 0;
+    CbmdosFile *tmp = self->files[from];
+    if (to > from)
+    {
+	memmove(self->files + from, self->files + from + 1,
+		(to - from) * sizeof *self->files);
+    }
+    else
+    {
+	memmove(self->files + to + 1, self->files + to,
+		(from - to) * sizeof *self->files);
+    }
+    self->files[to] = tmp;
+    CbmdosVfsEventArgs args = {
+	.what = CVE_FILEMOVED,
+	.filepos = from,
+	.targetpos = to
+    };
+    Event_raise(self->changedEvent, &args);
+    return 0;
+}
+
 void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line)
 {
     memset(line, 0xa0, 24);

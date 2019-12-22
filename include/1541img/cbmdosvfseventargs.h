@@ -19,12 +19,15 @@ typedef struct CbmdosVfsEventArgs
         CVE_IDCHANGED,      /**< the disc ID of the filesystem changed */
         CVE_FILEADDED,      /**< a file was added to the filesystem */
         CVE_FILEDELETED,    /**< a file was deleted from the filesystem */
+	CVE_FILEMOVED,	    /**< a file was moved to another position */
         CVE_FILECHANGED     /**< a file on the filesystem was changed */
     } what;     /**< describes what happened to the vfs */
     const CbmdosFileEventArgs *fileEventArgs;   /**< for changed files, 
                                 a pointer to the corresponding event args */
     unsigned filepos;       /**< for changes concerning a file, the position
                                  affected by the change */
+    unsigned targetpos;	    /**< for file moved events, the target position
+			         of the moved file */
 } CbmdosVfsEventArgs;
 
 #ifdef __cplusplus
