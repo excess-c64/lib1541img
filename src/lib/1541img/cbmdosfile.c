@@ -74,7 +74,7 @@ int CbmdosFile_setType(CbmdosFile *self, CbmdosFileType type)
         return -1;
     }
     if (type == self->type) return 0;
-    if (type == CFT_DEL)
+    if (self->type == CFT_DEL || type == CFT_DEL)
     {
 	CbmdosFile_setData(self, FileData_create());
     }
