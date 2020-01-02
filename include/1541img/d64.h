@@ -15,7 +15,8 @@ extern "C" {
 typedef enum D64Type
 {
     D64_STANDARD, /**< standard image with 35 tracks */
-    D64_40TRACK   /**< extended image with 40 tracks */
+    D64_40TRACK,  /**< extended image with 40 tracks */
+    D64_42TRACK   /**< extended image with 42 tracks */
 } D64Type;
 
 /** A D64 disk image.

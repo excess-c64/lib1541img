@@ -13,11 +13,11 @@ struct D64
     Track *track[];
 };
 
-static const uint8_t tracks[] = {35, 40};
+static const uint8_t tracks[] = {35, 40, 42};
 
 D64 *D64_create(D64Type type)
 {
-    if (type < 0 || type > 1)
+    if (type < 0 || type > 2)
     {
         logmsg(L_ERROR, "D64: invalid type argument.");
         return 0;

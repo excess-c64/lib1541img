@@ -31,6 +31,10 @@ D64 *readD64(FILE *file)
         case 197376UL:
             type = D64_40TRACK;
             break;
+        case 205312UL:
+        case 206114UL:
+            type = D64_42TRACK;
+            break;
         default:
             FileData_destroy(data);
             logmsg(L_WARNING, "readD64: not a valid D64 file.");

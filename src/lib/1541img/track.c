@@ -15,7 +15,7 @@ struct Track
 
 static uint8_t getsectors(uint8_t tracknum)
 {
-    if (!tracknum || tracknum > 40) return 0;
+    if (!tracknum || tracknum > 42) return 0;
     if (tracknum < 18) return 21;
     if (tracknum < 25) return 19;
     if (tracknum < 31) return 18;
