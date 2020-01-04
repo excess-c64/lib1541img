@@ -99,7 +99,7 @@ static ZcFileSet *fromD64(const char *filename)
     fclose(d64file);
     if (!d64) return 0;
     CbmdosVfs *vfs = CbmdosVfs_create();
-    int rc = readCbmdosVfs(vfs, d64);
+    int rc = readCbmdosVfs(vfs, d64, 0);
     D64_destroy(d64);
     if (rc < 0)
     {

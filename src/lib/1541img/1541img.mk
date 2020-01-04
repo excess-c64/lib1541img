@@ -2,10 +2,11 @@
 	hostfilereader hostfilewriter d64writer filename zcfileset \
 	zc45extractor cbmdosfile cbmdosvfs cbmdosvfsreader d64reader \
 	zc45writer zc45compressor event cbmdosfs
-1541img_HEADERS_INSTALL:= cbmdosfile cbmdosfileeventargs cbmdosfs cbmdosvfs \
-	cbmdosvfseventargs cbmdosvfsreader d64 d64reader d64writer event \
-	filedata hostfilereader hostfilewriter log sector track \
-	zc45compressor zc45extractor zc45reader zc45writer zcfileset
+1541img_HEADERS_INSTALL:= cbmdosfile cbmdosfileeventargs cbmdosfs \
+	cbmdosfsoptions cbmdosvfs cbmdosvfseventargs cbmdosvfsreader d64 \
+	d64reader d64writer event filedata hostfilereader hostfilewriter log \
+	sector track zc45compressor zc45extractor zc45reader zc45writer \
+	zcfileset
 1541img_HEADERDIR:= include$(PSEP)1541img
 1541img_DEFINES:= -DBUILDING_1541IMG
 1541img_V_MAJ:= 0

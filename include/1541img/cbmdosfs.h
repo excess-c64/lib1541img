@@ -10,33 +10,7 @@ extern "C" {
 
 #include <stdint.h>
 
-/** Some flags defining behavior of the filesystem */
-typedef enum CbmdosFsFlags
-{
-    CFF_COMPATIBLE = 0,             /**< no flags, 100% compatible to cbmdos */
-    CFF_ALLOWLONGDIR = 1 << 0,      /**< long directories (more than one track)
-                                         allowed */
-    CFF_FILESONDIRTRACK = 1 << 1,   /**< allow files to be placed on the
-                                         directory track */
-    CFF_40TRACK = 1 << 2,           /**< filesystem spans over 40 tracks
-                                         (instead of the default 35) */
-    CFF_DOLPHINDOSBAM = 1 << 3,     /**< create a BAM for extended tracks in
-                                         dolphindos format */
-    CFF_SPEEDDOSBAM = 1 << 4,       /**< create a BAM for extended tracks in
-                                         speeddos format */
-    CFF_ZEROFREE = 1 << 5,          /**< report no free blocks in directory */
-} CbmdosFsFlags;
-
-/** Filesystem options
- * @struct CbmdosFsOptions cbmdosfs.h <1541img/cbmdosfs.h>
- */
-typedef struct CbmdosFsOptions
-{
-    CbmdosFsFlags flags;            /**< filesystem flags */
-    uint8_t dirInterleave;          /**< sector interleave to use for
-                                         directory */
-    uint8_t fileInterleave;         /**< sector interleave to use for files */
-} CbmdosFsOptions;
+#include <1541img/cbmdosfsoptions.h>
 
 /** Status of a filesystem */
 typedef enum CbmdosFsStatus
@@ -136,19 +110,21 @@ CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self);
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  * @param options the new options for the filesystem
+ * @returns 0 on success, -1 on error (invalid options)
  */
-void CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options);
+int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options);
 
 /** Re-writes the filesystem to the disk image
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
+ * @returns 0 on success, -1 on error
  */
 int CbmdosFs_rewrite(CbmdosFs *self);
 
 /** The number of free blocks in this filesystem.
  * This returns the number of free blocks as reported by cbmdos (optionally
- * with speeddos or dolphin dos for a 40track filesystem). Note if the option
- * CFF_ZEROFREE is set, this will return 0.
+ * with speeddos or dolphin dos for a 40track filesystem). Note that the option
+ * CFF_ZEROFREE is ignored here.
  * If the filesystem is too full (so it can't be written to a disk), this will
  * return the special error value 0xffff.
  * This is a "best guess" implementation, that can return wrong values in
@@ -163,7 +139,9 @@ uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self);
 /** Get the "free blocks message" as shown in the directory in the C64.
  * This gets the "xxx blocks free." message as shown in the directory, using
  * the number calculated by CbmdosFs_freeBlocks(), as a byte array containing
- * PETSCII characters.
+ * PETSCII characters. If CbmdosFs_freeBlocks() reports an error, this will
+ * report "-1 blocks free.". Otherwise, if the option CFF_ZEROFREE is set, it
+ * will report "0 blocks free."
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  * @param line a pointer to exactly 16 bytes, the line in PETSCII encoding

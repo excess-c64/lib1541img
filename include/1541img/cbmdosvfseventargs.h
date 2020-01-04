@@ -10,7 +10,10 @@ extern "C" {
 
 #include <1541img/cbmdosfileeventargs.h>
 
-/** Arguments for events raised by CbmdosVfs */
+/** Arguments for events raised by CbmdosVfs
+ * @struct CbmdosVfsEventArgs cbmdosvfseventargs.h \
+ *     <1541img/cbmdosvfseventargs.h>
+ */
 typedef struct CbmdosVfsEventArgs
 {
     enum {

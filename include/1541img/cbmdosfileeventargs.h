@@ -9,8 +9,8 @@ extern "C" {
  */
 
 /** Arguments for events raised by CbmdosFile
- * @class CbmdosFileEventArgs cbmdosfileeventargs.h \
- *     <1541img/cbmdosfileeventargs>
+ * @struct CbmdosFileEventArgs cbmdosfileeventargs.h \
+ *     <1541img/cbmdosfileeventargs.h>
  */
 typedef struct CbmdosFileEventArgs
 {

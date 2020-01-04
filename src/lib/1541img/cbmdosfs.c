@@ -29,7 +29,7 @@ struct CbmdosFs
     DirData dir;
     CbmdosFsStatus status;
     CbmdosFsOptions options;
-    uint8_t bam[40][21];
+    uint8_t bam[42][21];
 };
 
 static void createTrackBam(CbmdosFs *self, uint8_t *tbam, uint8_t trackno)
@@ -66,7 +66,7 @@ static void updateBam(CbmdosFs *self)
         {
             createTrackBam(self, bam + 4*trackno, trackno);
         }
-        else
+        else if (trackno < 41)
         {
             if (self->options.flags & CFF_DOLPHINDOSBAM)
             {
@@ -76,16 +76,22 @@ static void updateBam(CbmdosFs *self)
             {
                 createTrackBam(self, bam + 0x30 + 4*trackno, trackno);
             }
+            if (self->options.flags & CFF_PROLOGICDOSBAM)
+            {
+                createTrackBam(self, bam + 4*trackno, trackno);
+            }
         }
     }
-    memset(bam+0x90, 0xa0, 0x1a);
-    bam[0xa5] = 0x32;
-    bam[0xa6] = 0x41;
+    uint8_t nameoffset = 0;
+    if (self->options.flags & CFF_PROLOGICDOSBAM) nameoffset = 0x14;
+    memset(bam+0x90+nameoffset, 0xa0, 0x1a);
+    bam[0xa5+nameoffset] = 0x32;
+    bam[0xa6+nameoffset] = CbmdosVfs_dosver(self->vfs);
     uint8_t length;
     const char *name = CbmdosVfs_name(self->vfs, &length);
-    memcpy(bam+0x90, name, length);
+    memcpy(bam+0x90+nameoffset, name, length);
     const char *id = CbmdosVfs_id(self->vfs, &length);
-    memcpy(bam+0xa2, id, length);
+    memcpy(bam+0xa2+nameoffset, id, length);
 }
 
 static void deleteChain(CbmdosFs *self, uint8_t nexttrack, uint8_t nextsect)
@@ -123,15 +129,22 @@ static uint8_t freeSectorOnTrack(CbmdosFs *self, uint8_t trackno,
 
 static uint8_t nextTrack(CbmdosFs *self, uint8_t trackno)
 {
+    if (trackno == 42) return 18;
+    if ((self->options.flags & CFF_42TRACK) && (trackno == 17))
+    {
+	return 41;
+    }
     if (trackno == 40) return 1;
-    if (trackno == 35 && !(self->options.flags & CFF_40TRACK)) return 1;
+    if (trackno == 35 && !(self->options.flags & (CFF_40TRACK | CFF_42TRACK)))
+    {
+	return 1;
+    }
     return trackno + 1;
 }
 
 static int findStartSector(CbmdosFs *self, uint8_t *trackno, uint8_t *sectno)
 {
     uint8_t tn = 19;
-    uint8_t stoptn = (self->options.flags & CFF_FILESONDIRTRACK) ? 19 : 18;
     do
     {
 	for (uint8_t sn = 0;
@@ -145,7 +158,8 @@ static int findStartSector(CbmdosFs *self, uint8_t *trackno, uint8_t *sectno)
 	    }
 	}
 	tn = nextTrack(self, tn);
-    } while (tn != stoptn);
+	if (tn == 18 && !(self->options.flags & CFF_FILESONDIRTRACK)) tn = 19;
+    } while (tn != 19);
     return -1;
 }
 
@@ -434,19 +448,27 @@ static void vfsChanged(void *receiver, int id, const void *sender,
     }
 }
 
+static int validateOptions(CbmdosFsOptions options)
+{
+    if ((options.flags & (CFF_SPEEDDOSBAM | CFF_DOLPHINDOSBAM))
+	    && (options.flags & CFF_PROLOGICDOSBAM))
+    {
+	logmsg(L_ERROR, "Cannot combine Prologic DOS extended BAM with any "
+		"other extended BAM formats.");
+	return -1;
+    }
+    return 0;
+}
+
 CbmdosFs *CbmdosFs_create(CbmdosFsOptions options)
 {
-    if (options.flags & CFF_FILESONDIRTRACK)
-    {
-	logmsg(L_WARNING, "CbmdosFs_fromImage: Ignoring CFF_FILESONDIRTRACK, "
-		"flag ist invalid when creating empty FS.");
-	options.flags &= ~CFF_FILESONDIRTRACK;
-    }
-
+    if (validateOptions(options) < 0) return 0;
     CbmdosFs *self = xmalloc(sizeof *self);
     memset(self, 0, sizeof *self);
-    self->d64 = D64_create(options.flags & CFF_40TRACK ?
-            D64_40TRACK : D64_STANDARD);
+    D64Type d64Type = D64_STANDARD;
+    if (options.flags & CFF_42TRACK) d64Type = D64_42TRACK;
+    else if (options.flags & CFF_40TRACK) d64Type = D64_40TRACK;
+    self->d64 = D64_create(d64Type);
     self->dir.capa = DIRCHUNK;
     self->dir.entries = xmalloc(DIRCHUNK * sizeof *self->dir.entries);
     self->vfs = CbmdosVfs_create();
@@ -459,28 +481,41 @@ CbmdosFs *CbmdosFs_create(CbmdosFsOptions options)
 
 CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options)
 {
-    if (options.flags & CFF_FILESONDIRTRACK)
-    {
-	logmsg(L_WARNING, "CbmdosFs_fromImage: Ignoring CFF_FILESONDIRTRACK, "
-		"flag ist invalid when creating FS from an image.");
-	options.flags &= ~CFF_FILESONDIRTRACK;
-    }
+    if (validateOptions(options) < 0) return 0;
     switch (D64_type(d64))
     {
 	case D64_STANDARD:
-	    if (options.flags & CFF_40TRACK)
+	    if (options.flags & (CFF_40TRACK | CFF_42TRACK))
 	    {
-		logmsg(L_WARNING, "CbmdosFs_fromImage: removing CFF_40TRACK "
-			"flag, passed image has only 35 tracks.");
-		options.flags &= ~CFF_40TRACK;
+		logmsg(L_ERROR, "CbmdosFs_fromImage: trying to read a 40- or "
+			"42-tracks filesystem from an image that only has "
+			"35 tracks.");
+		return 0;
 	    }
 	    break;
 	case D64_40TRACK:
+	    if (options.flags & CFF_42TRACK)
+	    {
+		logmsg(L_ERROR, "CbmdosFs_fromImage: trying to read a "
+			"42-tracks filesystem from an image that only has "
+			"40 tracks.");
+		return 0;
+	    }
 	    if (!(options.flags & CFF_40TRACK))
 	    {
-		logmsg(L_WARNING, "CbmdosFs_fromImage: adding CFF_40TRACK "
-			"flag, passed image has 40 tracks.");
-		options.flags |= CFF_40TRACK;
+		logmsg(L_WARNING, "CbmdosFs_fromImage: trying to read a "
+			"35-tracks filesystem from an image that has 40 "
+			"tracks, this will fail if the filesystem spans "
+			"all 40 tracks.");
+	    }
+	    break;
+	case D64_42TRACK:
+	    if (!(options.flags & CFF_42TRACK))
+	    {
+		logmsg(L_WARNING, "CbmdosFs_fromImage: trying to read a 35- "
+			"or 40-tracks filesystem from an image that has 42 "
+			"tracks, this will fail if the filesystem spans "
+			"all 42 tracks.");
 	    }
 	    break;
     }
@@ -492,7 +527,8 @@ CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options)
     self->dir.entries = xmalloc(DIRCHUNK * sizeof *self->dir.entries);
     self->vfs = CbmdosVfs_create();
     self->options = options;
-    int rc = readCbmdosVfsInternal(self->vfs, self->d64, self->bam, &self->dir);
+    int rc = readCbmdosVfsInternal(self->vfs, self->d64,
+	    &self->options, self->bam, &self->dir);
     switch (rc)
     {
 	case -1:
@@ -509,6 +545,7 @@ CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options)
 
 CbmdosFs *CbmdosFs_fromVfs(CbmdosVfs *vfs, CbmdosFsOptions options)
 {
+    if (validateOptions(options) < 0) return 0;
     CbmdosFs *self = xmalloc(sizeof *self);
     memset(self, 0, sizeof *self);
     self->dir.capa = DIRCHUNK;
@@ -556,16 +593,20 @@ CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self)
     return self->options;
 }
 
-void CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options)
+int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options)
 {
+    if (validateOptions(options) < 0) return -1;
     self->options = options;
+    return 0;
 }
 
 int CbmdosFs_rewrite(CbmdosFs *self)
 {
     D64_destroy(self->d64);
-    self->d64 = D64_create(self->options.flags & CFF_40TRACK ?
-	    D64_40TRACK : D64_STANDARD);
+    D64Type d64Type = D64_STANDARD;
+    if (self->options.flags & CFF_42TRACK) d64Type = D64_42TRACK;
+    else if (self->options.flags & CFF_40TRACK) d64Type = D64_40TRACK;
+    self->d64 = D64_create(d64Type);
     self->status = CFS_OK;
     memset(self->bam, 0, sizeof self->bam);
     if (updateDir(self) < 0)
@@ -589,7 +630,11 @@ int CbmdosFs_rewrite(CbmdosFs *self)
 uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self)
 {
     uint16_t free = 664;
-    if (self->options.flags & (CFF_DOLPHINDOSBAM | CFF_SPEEDDOSBAM))
+    if (self->options.flags & CFF_42TRACK)
+    {
+	free += 119;
+    }
+    else if (self->options.flags & CFF_40TRACK)
     {
 	free += 85;
     }
@@ -623,6 +668,7 @@ void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line)
 {
     uint16_t rawFree = CbmdosFs_freeBlocks(self);
     int free = (rawFree == 0xffff) ? -1 : rawFree;
+    if (free > 0 && (self->options.flags & CFF_ZEROFREE)) free = 0;
     char freestr[4];
     snprintf(freestr, 4, "%d", free);
     memset(line, 0xa0, 16);
