@@ -51,22 +51,20 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
     if (options->flags & CFF_PROLOGICDOSBAM)
     {
 	nameoffset = 0x14;
-	if (options->flags & (CFF_40TRACK | CFF_42TRACK))
-	{
-	    defaultver = 0x50;
-	}
+	defaultver = 0x50;
     }
     uint8_t namelen = 16;
     while (namelen && bam[namelen + 0x8f + nameoffset] == 0xa0) --namelen;
     CbmdosVfs_setName(vfs, (const char *)bam+0x90+nameoffset, namelen);
     uint8_t idlen = 5;
-    if (bam[0xa4+nameoffset] == 0xa0)
+    if (bam[0xa6+nameoffset] == defaultver)
     {
-        if (bam[0xa6+nameoffset] == defaultver)
-        {
-            idlen = 4;
-            if (bam[0xa5+nameoffset] == 0x32) idlen = 2;
-        }
+	--idlen;
+	if (bam[0xa5+nameoffset] == 0x32)
+	{
+	    --idlen;
+	    if (bam[0xa4+nameoffset] == 0xa0) --idlen;
+	}
     }
     CbmdosVfs_setId(vfs, (const char *)bam+0xa2+nameoffset, idlen);
 

@@ -278,7 +278,7 @@ void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line)
     line[0] = 0x22;
     line[17] = 0x22;
     line[22] = 0x32;
-    line[23] = 0x41;
+    line[23] = self->dosver;
     memcpy(line+1, self->name, self->nameLength);
     memcpy(line+19, self->id, self->idLength);
 }

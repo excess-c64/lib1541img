@@ -472,6 +472,10 @@ CbmdosFs *CbmdosFs_create(CbmdosFsOptions options)
     self->dir.capa = DIRCHUNK;
     self->dir.entries = xmalloc(DIRCHUNK * sizeof *self->dir.entries);
     self->vfs = CbmdosVfs_create();
+    if (options.flags & CFF_PROLOGICDOSBAM)
+    {
+	CbmdosVfs_setDosver(self->vfs, 0x50);
+    }
     self->options = options;
     self->bam[17][0] = 1;
     updateBam(self);
@@ -556,6 +560,11 @@ CbmdosFs *CbmdosFs_fromVfs(CbmdosVfs *vfs, CbmdosFsOptions options)
     }
     self->dir.entries = xmalloc(DIRCHUNK * sizeof *self->dir.entries);
     memset(self->dir.entries, 0, sizeof *self);
+    if ((options.flags & CFF_PROLOGICDOSBAM)
+	    && CbmdosVfs_dosver(vfs) == 0x41)
+    {
+	CbmdosVfs_setDosver(vfs, 0x50);
+    }
     self->vfs = vfs;
     self->options = options;
     if (CbmdosFs_rewrite(self) < 0)
