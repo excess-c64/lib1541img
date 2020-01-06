@@ -79,7 +79,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 		if (parseTrackBam(bamdata[trackno-1], sectors,
 			    bam + 4*trackno) < 0)
 		{
-		    rc = -2;
+		    if (!(options->flags & CFF_ZEROFREE)) rc = -2;
 		}
 	    }
 	    else if ((options->flags & (CFF_40TRACK | CFF_42TRACK))
@@ -90,7 +90,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 		    if (parseTrackBam(bamdata[trackno-1], sectors,
 				bam + 0x1c + 4*trackno) < 0)
 		    {
-			rc = -2;
+			if (!(options->flags & CFF_ZEROFREE)) rc = -2;
 		    }
 		}
 		if (options->flags & CFF_SPEEDDOSBAM)
@@ -98,7 +98,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 		    if (parseTrackBam(bamdata[trackno-1], sectors,
 				bam + 0x30 + 4*trackno) < 0)
 		    {
-			rc = -2;
+			if (!(options->flags & CFF_ZEROFREE)) rc = -2;
 		    }
 		}
 		if (options->flags & CFF_PROLOGICDOSBAM)
@@ -106,7 +106,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 		    if (parseTrackBam(bamdata[trackno-1], sectors,
 				bam + 4*trackno) < 0)
 		    {
-			rc = -2;
+			if (!(options->flags & CFF_ZEROFREE)) rc = -2;
 		    }
 		}
 	    }
@@ -316,12 +316,21 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 {
     CbmdosFsOptions probeopts = CFO_DEFAULT;
 
+    uint8_t bamprobedolphin[5][21] = {{ 0 }};
+    uint8_t bamprobespeed[5][21] = {{ 0 }};
+
     const uint8_t *bam = Sector_rcontent(D64_rsector(d64, 18, 0));
     if (D64_tracks(d64) > 35)
     {
 	if (bam[2] == 0x50)
 	{
 	    probeopts.flags |= CFF_PROLOGICDOSBAM;
+	    for (uint8_t trackno = 36; trackno < 41; ++trackno)
+	    {
+		uint8_t sectors = Track_sectors(D64_rtrack(d64, trackno));
+		parseTrackBam(bamprobespeed[trackno-36],
+			sectors, bam + 4*trackno);
+	    }
 	}
 	else
 	{
@@ -330,11 +339,13 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 	    for (uint8_t trackno = 36; trackno < 41; ++trackno)
 	    {
 		uint8_t sectors = Track_sectors(D64_rtrack(d64, trackno));
-		if (parseTrackBam(0, sectors, bam + 0x1c + 4*trackno) < 0)
+		if (parseTrackBam(bamprobedolphin[trackno-36],
+			    sectors, bam + 0x1c + 4*trackno) < 0)
 		{
 		    dolphinok = 0;
 		}
-		if (parseTrackBam(0, sectors, bam + 0x30 + 4*trackno) < 0)
+		if (parseTrackBam(bamprobespeed[trackno-36],
+			    sectors, bam + 0x30 + 4*trackno) < 0)
 		{
 		    speedok = 0;
 		}
@@ -383,13 +394,7 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 		    uint8_t sector = direntry[4];
 		    while (track)
 		    {
-			if (track > 42)
-			{
-			    logfmt(L_ERROR, "probeCbmdosFsOptions: invalid "
-				    "track %d found.", track);
-			    return -1;
-			}
-			else if (track > 40)
+			if (track > 40)
 			{
 			    probeopts.flags &= ~CFF_40TRACK;
 			    probeopts.flags |= CFF_42TRACK;
@@ -406,14 +411,15 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 				d64, track, sector);
 			if (!filesector)
 			{
-			    logmsg(L_ERROR, "probeCbmdosFsOptions: "
-				    "corrupt filesystem.");
+			    logfmt(L_ERROR, "probeCbmdosFsOptions: "
+				    "non-existent sector %d/%d found.",
+				    track, sector);
 			    return -1;
 			}
                         if (rdmap[track-1][sector])
                         {
 			    logmsg(L_ERROR, "probeCbmdosFsOptions: "
-				    "corrupt filesystem.");
+				    "corrupt filesystem, sector used twice.");
 			    return -1;
                         }
                         rdmap[track-1][sector] = 1;
@@ -430,20 +436,16 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
             dirsect = D64_rsector(d64, dirbytes[0], dirbytes[1]);
             if (!dirsect)
             {
-                logmsg(L_ERROR, "probeCbmdosFsOptions: corrupt filesystem.");
+                logfmt(L_ERROR, "probeCbmdosFsOptions: Non-existent sector "
+			"%d/%d found.", dirbytes[0], dirbytes[1]);
 		return -1;
             }
 	    if (rdmap[dirbytes[0]-1][dirbytes[1]])
             {
-                logmsg(L_ERROR, "probeCbmdosFsOptions: corrupt filesystem.");
+                logmsg(L_ERROR, "probeCbmdosFsOptions: corrupt filesystem, "
+			"sector used twice.");
                 return -1;
             }
-	    if (dirbytes[0] > 42)
-	    {
-		logfmt(L_ERROR, "probeCbmdosFsOptions: invalid track %d "
-			"found.", dirbytes[0]);
-		return -1;
-	    }
 	    if (dirbytes[0] > 40)
 	    {
 		probeopts.flags &= ~CFF_40TRACK;
@@ -461,6 +463,109 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
         }
         else dirsect = 0;
     }
+
+    if ((probeopts.flags & CFF_DOLPHINDOSBAM)
+	    && memcmp(rdmap+35, bamprobedolphin, sizeof bamprobedolphin))
+    {
+	probeopts.flags &= ~CFF_DOLPHINDOSBAM;
+    }
+    if ((probeopts.flags & CFF_SPEEDDOSBAM)
+	    && memcmp(rdmap+35, bamprobespeed, sizeof bamprobespeed))
+    {
+	probeopts.flags &= ~CFF_SPEEDDOSBAM;
+    }
+    if ((probeopts.flags & CFF_PROLOGICDOSBAM)
+	    && memcmp(rdmap+35, bamprobespeed, sizeof bamprobespeed))
+    {
+	probeopts.flags &= ~CFF_PROLOGICDOSBAM;
+    }
+
+    int hasfreeblocks = 0;
+    for (uint8_t trackno = 1;
+	    trackno < (D64_type(d64) == D64_STANDARD ? 36 : 41); ++trackno)
+    {
+	uint8_t sectors = Track_sectors(D64_rtrack(d64, trackno));
+	for (uint8_t sectno = 0; sectno < sectors; ++sectno)
+	{
+	    if (!rdmap[trackno-1][sectno])
+	    {
+		hasfreeblocks = 1;
+		goto checkzerofree;
+	    }
+	}
+    }
+
+checkzerofree:
+    if (hasfreeblocks)
+    {
+	int zerofree = 1;
+	for (uint8_t trackno = 1; trackno < 36; ++trackno)
+	{
+	    if (bam[4*trackno])
+	    {
+		zerofree = 0;
+		break;
+	    }
+	}
+
+	if (D64_type(d64) == D64_STANDARD)
+	{
+	    if (zerofree) probeopts.flags |= CFF_ZEROFREE;
+	}
+	else if (zerofree)
+	{
+	    if (probeopts.flags & CFF_PROLOGICDOSBAM)
+	    {
+		for (uint8_t trackno = 36; trackno < 41; ++trackno)
+		{
+		    if (bam[4*trackno])
+		    {
+			zerofree = 0;
+			break;
+		    }
+		}
+		if (zerofree) probeopts.flags |= CFF_ZEROFREE;
+	    }
+	    else
+	    {
+		int havedolphin = 0;
+		int havespeed = 0;
+		if (!memcmp(rdmap+35, bamprobedolphin,
+			sizeof bamprobedolphin))
+		{
+		    havedolphin = 1;
+		    for (uint8_t trackno = 36; trackno < 41; ++trackno)
+		    {
+			if (bam[4*trackno + 0x1c])
+			{
+			    zerofree = 0;
+			    break;
+			}
+		    }
+		}
+		if (!memcmp(rdmap+35, bamprobespeed,
+			    sizeof bamprobespeed))
+		{
+		    havespeed = 1;
+		    for (uint8_t trackno = 36; trackno < 41; ++trackno)
+		    {
+			if (bam[4*trackno + 0x30])
+			{
+			    zerofree = 0;
+			    break;
+			}
+		    }
+		}
+		if (zerofree)
+		{
+		    probeopts.flags |= CFF_ZEROFREE;
+		    if (havedolphin) probeopts.flags |= CFF_DOLPHINDOSBAM;
+		    if (havespeed) probeopts.flags |= CFF_SPEEDDOSBAM;
+		}
+	    }
+	}
+    }
+
     memcpy(options, &probeopts, sizeof probeopts);
     return 0;
 }
