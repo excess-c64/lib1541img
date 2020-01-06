@@ -461,12 +461,6 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
         }
         else dirsect = 0;
     }
-
-    if (!(probeopts.flags & (CFF_40TRACK | CFF_42TRACK)))
-    {
-	probeopts.flags &= ~(CFF_DOLPHINDOSBAM | CFF_SPEEDDOSBAM);
-    }
-
     memcpy(options, &probeopts, sizeof probeopts);
     return 0;
 }
