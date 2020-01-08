@@ -318,7 +318,7 @@ done:
 int readCbmdosVfs(CbmdosVfs *vfs, const D64 *d64,
 	const CbmdosFsOptions *options)
 {
-    CbmdosFsOptions probeopts;
+    CbmdosFsOptions probeopts = CFO_DEFAULT;
     if (!options)
     {
 	if (probeCbmdosFsOptions(&probeopts, d64) < 0) return -1;
