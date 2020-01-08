@@ -32,6 +32,8 @@ typedef enum CbmdosFsFlags
     CFF_PROLOGICDOSBAM = 1 << 6,    /**< create a BAM for extended tracks in
                                          prologic format */
     CFF_ZEROFREE = 1 << 7,          /**< report no free blocks in directory */
+    CFF_RECOVER = 1 << 8,	    /**< when reading from disk image, try
+				         to recover a broken filesystem */
 } CbmdosFsFlags;
 
 /** Filesystem options

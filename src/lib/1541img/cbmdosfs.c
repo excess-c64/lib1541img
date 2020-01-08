@@ -543,6 +543,11 @@ CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options)
 	    self->status |= CFS_INVALIDBAM;
 	    break;
     }
+    if (self->options.flags & CFF_RECOVER)
+    {
+	self->options.flags &= ~CFF_RECOVER;
+	self->status |= CFS_BROKEN;
+    }
     Event_register(CbmdosVfs_changedEvent(self->vfs), self, vfsChanged);
     return self;
 }
@@ -558,8 +563,7 @@ CbmdosFs *CbmdosFs_fromVfs(CbmdosVfs *vfs, CbmdosFsOptions options)
     {
 	self->dir.capa += DIRCHUNK;
     }
-    self->dir.entries = xmalloc(DIRCHUNK * sizeof *self->dir.entries);
-    memset(self->dir.entries, 0, sizeof *self);
+    self->dir.entries = xmalloc(self->dir.capa * sizeof *self->dir.entries);
     if ((options.flags & CFF_PROLOGICDOSBAM)
 	    && CbmdosVfs_dosver(vfs) == 0x41)
     {
@@ -617,7 +621,9 @@ int CbmdosFs_rewrite(CbmdosFs *self)
     else if (self->options.flags & CFF_40TRACK) d64Type = D64_40TRACK;
     self->d64 = D64_create(d64Type);
     self->status = CFS_OK;
+    memset(self->dir.entries, 0, self->dir.size * sizeof *self->dir.entries);
     memset(self->bam, 0, sizeof self->bam);
+    self->bam[17][0] = 1;
     if (updateDir(self) < 0)
     {
 	self->status |= CFS_DIRFULL;

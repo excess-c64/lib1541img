@@ -178,6 +178,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 				    "%d found.", track);
 			    CbmdosFile_destroy(file);
 			    file = 0;
+			    if (options->flags & CFF_RECOVER) goto nextfile;
 			    dirsect = 0;
 			    rc = -1;
 			    break;
@@ -189,6 +190,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 				    "found file on directory track.");
 			    CbmdosFile_destroy(file);
 			    file = 0;
+			    if (options->flags & CFF_RECOVER) goto nextfile;
 			    dirsect = 0;
 			    rc = -1;
 			    break;
@@ -201,6 +203,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 				    "readCbmdosVfs: corrupt filesystem.");
 			    CbmdosFile_destroy(file);
 			    file = 0;
+			    if (options->flags & CFF_RECOVER) goto nextfile;
                             dirsect = 0;
 			    rc = -1;
 			    break;
@@ -211,6 +214,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
                                     "readCbmdosVfs: corrupt filesystem.");
                             CbmdosFile_destroy(file);
                             file = 0;
+			    if (options->flags & CFF_RECOVER) goto nextfile;
                             dirsect = 0;
 			    rc = -1;
                             break;
@@ -239,7 +243,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 			}
 		    }
 		}
-                if (file)
+nextfile:	if (file)
                 {
 		    if (CbmdosFile_realBlocks(file) != blocks)
 		    {
@@ -247,6 +251,10 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 		    }
                     CbmdosVfs_append(vfs, file);
                 }
+		else if (dirdata)
+		{
+		    --dirdata->size;
+		}
             }
         }
         if (dirsect && dirbytes[0])
@@ -255,18 +263,23 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
             if (!dirsect)
             {
                 logmsg(L_ERROR, "readCbmdosVfs: corrupt filesystem.");
+		if (options->flags & CFF_RECOVER) goto done;
 		rc = -1;
             }
 	    else if (rdmap[dirbytes[0]-1][dirbytes[1]])
             {
                 logmsg(L_ERROR, "readCbmdosVfs: corrupt filesystem.");
-                rc = -1;
-                dirsect = 0;
+		if (!(options->flags & CFF_RECOVER))
+		{
+		    rc = -1;
+		    dirsect = 0;
+		}
             }
 	    else if (!(options->flags & CFF_ALLOWLONGDIR) && dirbytes[0] != 18)
 	    {
 		logmsg(L_ERROR, "readCbmdosVfs: unexpectedly found long "
 			"directory.");
+		if (options->flags & CFF_RECOVER) goto done;
 		rc = -1;
 		dirsect = 0;
 	    }
@@ -274,6 +287,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 	    {
 		logfmt(L_ERROR, "readCbmdosVfs: invalid track %d found.",
 			dirbytes[0]);
+		if (options->flags & CFF_RECOVER) goto done;
 		rc = -1;
 		dirsect = 0;
 	    }
@@ -289,6 +303,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
         else dirsect = 0;
     }
 
+done:
     if (rc == 0 && bamdata)
     {
 	for (uint8_t track = 0; track < maxtrack; ++track)
@@ -315,6 +330,10 @@ int readCbmdosVfs(CbmdosVfs *vfs, const D64 *d64,
 int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 {
     CbmdosFsOptions probeopts = CFO_DEFAULT;
+    if (options->flags & CFF_RECOVER)
+    {
+	probeopts.flags |= CFF_RECOVER;
+    }
 
     uint8_t bamprobedolphin[5][21] = {{ 0 }};
     uint8_t bamprobespeed[5][21] = {{ 0 }};
@@ -380,12 +399,14 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 		{
 		    logmsg(L_ERROR, "probeCbmdosFsOptions: found REL file, "
 			    "which is currently not supported.");
+		    if (probeopts.flags & CFF_RECOVER) goto nextfile;
 		    return -1;
 		}
 		if (type < CFT_DEL || type > CFT_REL)
 		{
 		    logmsg(L_ERROR, "probeCbmdosFsOptions: invalid file type "
 			    "found.");
+		    if (probeopts.flags & CFF_RECOVER) goto nextfile;
 		    return -1;
 		}
 		if (type != CFT_DEL)
@@ -414,12 +435,14 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 			    logfmt(L_ERROR, "probeCbmdosFsOptions: "
 				    "non-existent sector %d/%d found.",
 				    track, sector);
+			    if (probeopts.flags & CFF_RECOVER) goto nextfile;
 			    return -1;
 			}
                         if (rdmap[track-1][sector])
                         {
 			    logmsg(L_ERROR, "probeCbmdosFsOptions: "
 				    "corrupt filesystem, sector used twice.");
+			    if (probeopts.flags & CFF_RECOVER) goto nextfile;
 			    return -1;
                         }
                         rdmap[track-1][sector] = 1;
@@ -429,6 +452,8 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 			sector = sectorbytes[1];
 		    }
 		}
+nextfile:
+		;
             }
         }
         if (dirbytes[0])
@@ -438,13 +463,14 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
             {
                 logfmt(L_ERROR, "probeCbmdosFsOptions: Non-existent sector "
 			"%d/%d found.", dirbytes[0], dirbytes[1]);
+		if (probeopts.flags & CFF_RECOVER) goto done;
 		return -1;
             }
 	    if (rdmap[dirbytes[0]-1][dirbytes[1]])
             {
                 logmsg(L_ERROR, "probeCbmdosFsOptions: corrupt filesystem, "
 			"sector used twice.");
-                return -1;
+                if (!(probeopts.flags & CFF_RECOVER)) return -1;
             }
 	    if (dirbytes[0] > 40)
 	    {
@@ -566,6 +592,7 @@ checkzerofree:
 	}
     }
 
+done:
     memcpy(options, &probeopts, sizeof probeopts);
     return 0;
 }
