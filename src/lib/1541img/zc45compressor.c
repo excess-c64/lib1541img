@@ -22,9 +22,9 @@ ZcFileSet *compressZc45(const D64 *d64)
     name[namelen] = 0;
 
     ZcFileSet *compressed = ZcFileSet_create(
-            type == D64_40TRACK ? ZT_5PACK : ZT_4PACK, name);
+            type == D64_STANDARD ? ZT_4PACK : ZT_5PACK, name);
 
-    for (int i = 0; i < (type == D64_40TRACK ? 5 : 4); ++i)
+    for (int i = 0; i < (type == D64_STANDARD ? 4 : 5); ++i)
     {
         size_t filelen = zc45_write(buf, MAXZCFILESIZE, i+1, d64);
         if (!filelen)

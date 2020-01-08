@@ -2,6 +2,9 @@
 	hostfilereader hostfilewriter d64writer filename zcfileset \
 	zc45extractor cbmdosfile cbmdosvfs cbmdosvfsreader d64reader \
 	zc45writer zc45compressor event cbmdosfs
+ifeq ($(PLATFORM),win32)
+1541img_MODULES+= winfopen
+endif
 1541img_HEADERS_INSTALL:= cbmdosfile cbmdosfileeventargs cbmdosfs \
 	cbmdosfsoptions cbmdosvfs cbmdosvfseventargs cbmdosvfsreader d64 \
 	d64reader d64writer event filedata hostfilereader hostfilewriter log \

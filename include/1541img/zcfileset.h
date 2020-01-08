@@ -44,7 +44,8 @@ ZcFileSet *ZcFileSet_create(ZcType type, const char *name);
  * automatically according to the naming convention of zipcode (all file
  * names start with the index number (1 to 6) followed by an exclamation mark)
  * @memberof ZcFileSet
- * @param filename the name of a zipcode member file or a D64 disc image
+ * @param filename the name of a zipcode member file or a D64 disc image. On
+ *     windows, this *must* be in UTF-8 encoding.
  * @returns a ZcFileSet containing the zipcode files, or NULL on error
  */
 ZcFileSet *ZcFileSet_fromFile(const char *filename);
@@ -95,7 +96,8 @@ FileData *ZcFileSet_fileData(ZcFileSet *self, int index);
  * Both are added automatically if they are missing.
  * @memberof ZcFileSet
  * @param self the zipcode file set
- * @param filename where to save the file set
+ * @param filename where to save the file set. On windows, this *must* be in
+ *     UTF-8 encoding.
  * @returns 0 on success, -1 on error
  */
 int ZcFileSet_save(const ZcFileSet *self, const char *filename);

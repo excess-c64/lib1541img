@@ -194,7 +194,7 @@ size_t zc45_write(uint8_t *zcfile, size_t zcfilelen, int zcfileno,
         logmsg(L_ERROR, "zc45_write: invalid fileno.");
         return 0;
     }
-    if (zcfileno == 5 && D64_type(d64) != D64_40TRACK)
+    if (zcfileno == 5 && D64_type(d64) == D64_STANDARD)
     {
         logmsg(L_ERROR, "zc45_write: fileno 5 invalid for 35-track disk.");
         return 0;

@@ -89,7 +89,7 @@ static ZcFileSet *fromFileData(const char *name, FileData **files)
 
 static ZcFileSet *fromD64(const char *filename)
 {
-    FILE *d64file = fopen(filename, "rb");
+    FILE *d64file = fopen_internal(filename, "rb");
     if (!d64file)
     {
         logfmt(L_ERROR, "ZcFileSet: error reading `%s'.", filename);
@@ -163,7 +163,7 @@ ZcFileSet *ZcFileSet_fromFile(const char *filename)
 		Filename_setBase(pn, base);
                 const char *ffn = Filename_full(pn);
                 logfmt(L_INFO, "ZcFileSet: trying to read `%s'.", ffn);
-		FILE *p = fopen(ffn, "rb");
+		FILE *p = fopen_internal(ffn, "rb");
 		if (p)
 		{
 		    files[base[0]-'1'] = readHostFile(p);
@@ -252,7 +252,7 @@ int ZcFileSet_save(const ZcFileSet *self, const char *filename)
             ++nextname[0])
     {
         Filename_setBase(fn, nextname);
-        FILE *f = fopen(Filename_full(fn), "wb");
+        FILE *f = fopen_internal(Filename_full(fn), "wb");
         if (!f)
         {
             free(nextname);
