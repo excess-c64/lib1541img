@@ -20,7 +20,8 @@ typedef struct CbmdosFileEventArgs
         CFE_DATACHANGED,            /**< content of a file changed */
         CFE_LOCKEDCHANGED,          /**< locked flag of a file changed */
         CFE_CLOSEDCHANGED,          /**< closed flag of a file changed */
-	CFE_FORCEDBLOCKSCHANGED     /**< forced blocks size of a file changed */
+	CFE_FORCEDBLOCKSCHANGED,    /**< forced blocks size of a file changed */
+        CFE_RECORDLENGTHCHANGED     /**< REL record length of a file changed */
     } what;     /**< describes what happened to the file */
 } CbmdosFileEventArgs;
 

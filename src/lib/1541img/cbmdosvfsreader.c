@@ -132,7 +132,6 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
             if (direntry[2])
             {
                 CbmdosFileType type = direntry[2] & 0xf;
-                if (type == CFT_REL) continue; // TODO: REL files
                 int locked = !!(direntry[2] & (1<<6));
                 int closed = !!(direntry[2] & (1<<7));
                 CbmdosFile *file = CbmdosFile_create();
@@ -143,6 +142,14 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
                 }
                 CbmdosFile_setLocked(file, locked);
                 CbmdosFile_setClosed(file, closed);
+                if (type == CFT_REL)
+                {
+                    if (CbmdosFile_setRecordLength(file, direntry[0x17]) < 0)
+                    {
+                        CbmdosFile_destroy(file);
+                        continue;
+                    }
+                }
                 uint8_t filenamelen = 16;
                 while (filenamelen && direntry[filenamelen + 4] == 0xa0)
                     --filenamelen;
@@ -159,9 +166,31 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 			dirdata->entries = xrealloc(dirdata->entries,
 				dirdata->capa * sizeof *dirdata->entries);
 		    }
-		    dirdata->entries[dirdata->size].starttrack = direntry[3];
-		    dirdata->entries[dirdata->size].startsector = direntry[4];
+                    if (type == CFT_DEL)
+                    {
+		        dirdata->entries[dirdata->size].starttrack = 0;
+		        dirdata->entries[dirdata->size].startsector = 0;
+                    }
+                    else
+                    {
+		        dirdata->entries[dirdata->size].starttrack
+                            = direntry[3];
+		        dirdata->entries[dirdata->size].startsector
+                            = direntry[4];
+                    }
 		    dirdata->entries[dirdata->size].blocks = blocks;
+                    if (type == CFT_REL)
+                    {
+                        dirdata->entries[dirdata->size].sidetrack
+                            = direntry[0x15];
+                        dirdata->entries[dirdata->size].sidesector
+                            = direntry[0x16];
+                    }
+                    else
+                    {
+                        dirdata->entries[dirdata->size].sidetrack = 0;
+                        dirdata->entries[dirdata->size].sidesector = 0;
+                    }
 		    ++dirdata->size;
 		}
 
@@ -170,6 +199,7 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 		    FileData *data = CbmdosFile_data(file);
 		    uint8_t track = direntry[3];
 		    uint8_t sector = direntry[4];
+                    int doingsidesects = 0;
 		    while (track)
 		    {
 			if (track > maxtrack)
@@ -228,19 +258,28 @@ int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 				D64_rsector(d64, track, sector));
 			track = sectorbytes[0];
 			sector = sectorbytes[1];
-			size_t appendsize = 254;
-			if (!track) appendsize = sector-1;
-			if (FileData_append(data, sectorbytes+2,
-				    appendsize) < 0)
-			{
-			    logmsg(L_ERROR, "readCbmdosVfs: error appending "
-				    "to file.");
-			    CbmdosFile_destroy(file);
-			    file = 0;
-                            dirsect = 0;
-			    rc = -1;
-			    break;
-			}
+                        if (!doingsidesects)
+                        {
+                            size_t appendsize = 254;
+                            if (!track) appendsize = sector-1;
+                            if (FileData_append(data, sectorbytes+2,
+                                        appendsize) < 0)
+                            {
+                                logmsg(L_ERROR, "readCbmdosVfs: error "
+                                        "appending to file.");
+                                CbmdosFile_destroy(file);
+                                file = 0;
+                                dirsect = 0;
+                                rc = -1;
+                                break;
+                            }
+                            if (!track && type == CFT_REL)
+                            {
+                                doingsidesects = 1;
+                                track = direntry[0x15];
+                                sector = direntry[0x16];
+                            }
+                        }
 		    }
 		}
 nextfile:	if (file)
@@ -395,13 +434,6 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
             if (direntry[2])
             {
                 CbmdosFileType type = direntry[2] & 0xf;
-                if (type == CFT_REL)
-		{
-		    logmsg(L_ERROR, "probeCbmdosFsOptions: found REL file, "
-			    "which is currently not supported.");
-		    if (probeopts.flags & CFF_RECOVER) goto nextfile;
-		    return -1;
-		}
 		if (type < CFT_DEL || type > CFT_REL)
 		{
 		    logmsg(L_ERROR, "probeCbmdosFsOptions: invalid file type "
@@ -413,6 +445,7 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 		{
 		    uint8_t track = direntry[3];
 		    uint8_t sector = direntry[4];
+                    int doingsidesects = 0;
 		    while (track)
 		    {
 			if (track > 40)
@@ -450,6 +483,12 @@ int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 				D64_rsector(d64, track, sector));
 			track = sectorbytes[0];
 			sector = sectorbytes[1];
+                        if (!track && !doingsidesects && type == CFT_REL)
+                        {
+                            doingsidesects = 1;
+                            track = direntry[0x15];
+                            sector = direntry[0x16];
+                        }
 		    }
 		}
 nextfile:

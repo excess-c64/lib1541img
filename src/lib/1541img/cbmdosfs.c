@@ -231,6 +231,12 @@ static int updateDir(CbmdosFs *self)
         uint8_t namelen;
         const char *name = CbmdosFile_name(file, &namelen);
         memcpy(dirent+5, name, namelen);
+        if (CbmdosFile_type(file) == CFT_REL)
+        {
+            dirent[0x15] = self->dir.entries[i].sidetrack;
+            dirent[0x16] = self->dir.entries[i].sidesector;
+            dirent[0x17] = CbmdosFile_recordLength(file);
+        }
         dirent[0x1e] = self->dir.entries[i].blocks & 0xff;
         dirent[0x1f] = self->dir.entries[i].blocks >> 8;
 	++dirpos;
@@ -244,12 +250,17 @@ fail:
 
 static void scratchFile(CbmdosFs *self, unsigned pos)
 {
-    if (!self->dir.entries[pos].starttrack) return;
-    deleteChain(self, self->dir.entries[pos].starttrack,
-	    self->dir.entries[pos].startsector);
-    self->dir.entries[pos].starttrack = 0;
-    self->dir.entries[pos].startsector = 0;
-    self->dir.entries[pos].blocks = 0;
+    if (self->dir.entries[pos].sidetrack)
+    {
+        deleteChain(self, self->dir.entries[pos].sidetrack,
+                self->dir.entries[pos].sidesector);
+    }
+    if (self->dir.entries[pos].starttrack)
+    {
+        deleteChain(self, self->dir.entries[pos].starttrack,
+                self->dir.entries[pos].startsector);
+    }
+    memset(self->dir.entries + pos, 0, sizeof *self->dir.entries);
 }
 
 static int updateFile(CbmdosFs *self, unsigned pos)
@@ -261,23 +272,23 @@ static int updateFile(CbmdosFs *self, unsigned pos)
     const CbmdosFile *file = CbmdosVfs_rfile(self->vfs, pos);
     const FileData *fdat = CbmdosFile_rdata(file);
     size_t length = FileData_size(fdat);
-    if (CbmdosFile_type(file) == CFT_DEL || !length)
+
+    scratchFile(self, pos);
+
+    CbmdosFileType type = CbmdosFile_type(file);
+    if (type == CFT_DEL || !length)
     {
 	uint16_t forcedBlocks = CbmdosFile_forcedBlocks(file);
 	if (forcedBlocks != 0xffff)
 	{
 	    self->dir.entries[pos].blocks = forcedBlocks;
 	}
-	else
-	{
-	    self->dir.entries[pos].blocks = 0;
-	}
-	self->dir.entries[pos].starttrack = 0;
-	self->dir.entries[pos].startsector = 0;
 	return 0;
     }
 
-    scratchFile(self, pos);
+    uint8_t tracks[720];
+    uint8_t sectors[720];
+    uint16_t sidesectlinkno = 0;
 
     if (findStartSector(self, &trackno, &sectno) < 0) goto fail;
     self->dir.entries[pos].starttrack = trackno;
@@ -286,6 +297,16 @@ static int updateFile(CbmdosFs *self, unsigned pos)
     while (length)
     {
 	self->bam[trackno-1][sectno] = 1;
+        if (type == CFT_REL)
+        {
+            tracks[sidesectlinkno] = trackno;
+            sectors[sidesectlinkno] = sectno;
+            if (++sidesectlinkno > 720)
+            {
+                scratchFile(self, pos);
+                goto fail;
+            }
+        }
 	uint8_t *block = Sector_content(D64_sector(self->d64, trackno, sectno));
 	block[0] = 0;
 	if (length <= 254)
@@ -316,6 +337,65 @@ static int updateFile(CbmdosFs *self, unsigned pos)
     uint16_t forcedBlocks = CbmdosFile_forcedBlocks(file);
     if (forcedBlocks != 0xffff) blocks = forcedBlocks;
     self->dir.entries[pos].blocks = blocks;
+
+    if (type == CFT_REL)
+    {
+        uint8_t sidesectnum = sidesectlinkno / 120
+            + !!(sidesectlinkno % 120);
+        uint8_t *sidesects[6] = { 0 };
+        uint8_t sidetracks[6] = { 0 };
+        uint8_t sidesectors[6] = { 0 };
+        uint8_t recordlen = CbmdosFile_recordLength(file);
+
+        if (findStartSector(self, &trackno, &sectno) < 0)
+        {
+            scratchFile(self, pos);
+            goto fail;
+        }
+        self->bam[trackno-1][sectno] = 1;
+        sidetracks[0] = trackno;
+        sidesectors[0] = sectno;
+        self->dir.entries[pos].sidetrack = trackno;
+        self->dir.entries[pos].sidesector = sectno;
+        sidesects[0] = Sector_content(D64_sector(self->d64, trackno, sectno));
+        sidesects[0][0] = 0;
+        sidesects[0][1] = 0;
+        sidesects[0][2] = 0;
+        sidesects[0][3] = recordlen;
+        for (uint8_t i = 1; i < sidesectnum; ++i)
+        {
+            if (findNextSector(self, &trackno, &sectno) < 0)
+            {
+                scratchFile(self, pos);
+                goto fail;
+            }
+            sidesects[i-1][0] = trackno;
+            sidesects[i-1][1] = sectno;
+            self->bam[trackno-1][sectno] = 1;
+            sidetracks[i] = trackno;
+            sidesectors[i] = sectno;
+            sidesects[i] = Sector_content(D64_sector(
+                        self->d64, trackno, sectno));
+            sidesects[i][0] = 0;
+            sidesects[i][1] = 0;
+            sidesects[i][2] = i;
+            sidesects[i][3] = recordlen;
+        }
+        for (uint8_t i = 0; i < sidesectnum; ++i)
+        {
+            for (uint8_t j = 0; j < 6; ++j)
+            {
+                sidesects[i][4+2*j] = sidetracks[j];
+                sidesects[i][5+2*j] = sidesectors[j];
+            }
+            for (int l = 0; l < 120; ++l)
+            {
+                sidesects[i][16+2*l] = tracks[l+120*i];
+                sidesects[i][17+2*l] = sectors[l+120*i];
+            }
+        }
+    }
+
     return 0;
 
 fail:
@@ -364,9 +444,8 @@ static void vfsChanged(void *receiver, int id, const void *sender,
 			* sizeof *self->dir.entries);
 	    }
 	    ++self->dir.size;
-	    self->dir.entries[ea->filepos].starttrack = 0;
-	    self->dir.entries[ea->filepos].startsector = 0;
-	    self->dir.entries[ea->filepos].blocks = 0;
+            memset(self->dir.entries + ea->filepos, 0,
+                    sizeof *self->dir.entries);
 	    if (updateDir(self) < 0)
 	    {
 		self->status |= CFS_DIRFULL;
@@ -435,6 +514,8 @@ static void vfsChanged(void *receiver, int id, const void *sender,
 
 	case CVE_FILECHANGED:
 	    if (ea->fileEventArgs->what == CFE_DATACHANGED
+                    || ea->fileEventArgs->what == CFE_TYPECHANGED
+                    || ea->fileEventArgs->what == CFE_RECORDLENGTHCHANGED
 		    || ea->fileEventArgs->what == CFE_FORCEDBLOCKSCHANGED)
 	    {
 		if (updateFile(self, ea->filepos) < 0)
@@ -673,6 +754,11 @@ uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self)
     {
 	const CbmdosFile *file = CbmdosVfs_rfile(self->vfs, n);
 	uint16_t fileBlocks = CbmdosFile_realBlocks(file);
+        if (CbmdosFile_type(file) == CFT_REL)
+        {
+            uint8_t sidesects = fileBlocks / 120 + !!(fileBlocks % 120);
+            fileBlocks += sidesects;
+        }
 	if (fileBlocks > free) return 0xffff;
 	free -= fileBlocks;
     }

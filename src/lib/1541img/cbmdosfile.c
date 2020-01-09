@@ -57,6 +57,7 @@ CbmdosFile *CbmdosFile_create(void)
     self->type = CFT_PRG;
     self->closed = 1;
     self->forcedBlocks = 0xffff;
+    self->recordLength = 254;
     Event_register(FileData_changedEvent(self->data), self, fileDataHandler);
     return self;
 }
@@ -155,7 +156,15 @@ int CbmdosFile_setRecordLength(CbmdosFile *self, uint8_t recordLength)
                 "max is 254.");
         return -1;
     }
+    if (recordLength < 1)
+    {
+        logmsg(L_WARNING, "CbmdosFile_setRecordLength: invalid length, "
+                "min is 1.");
+        return -1;
+    }
     self->recordLength = recordLength;
+    CbmdosFileEventArgs ea = { CFE_RECORDLENGTHCHANGED };
+    Event_raise(self->changedEvent, &ea);
     return 0;
 }
 
