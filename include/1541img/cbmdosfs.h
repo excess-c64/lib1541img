@@ -106,13 +106,30 @@ const D64 *CbmdosFs_image(const CbmdosFs *self);
  */
 CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self);
 
-/** Sets options for the filesystem
+/** Sets options for the filesystem.
+ * If necessary for the options to apply, this will automatically update the
+ * disk's BAM or even rewrite the entire disk image. If any changes were made
+ * to the disk image, it's indicated by a return value of 1.
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  * @param options the new options for the filesystem
- * @returns 0 on success, -1 on error (invalid options)
+ * @returns 1 if any changes were made to the disk image, 0 otherwise,
+ *     -1 on error (invalid options)
  */
 int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options);
+
+/** Check whether changed options would rewrite the image.
+ * This can be used to determine whether a full rewrite of the disk image will
+ * be triggered when setting new filesystem options. Use this if you want to
+ * warn the user before setting options that will cause a full rewrite. If
+ * only the BAM would be updated, this function will still return 0.
+ * @memberof CbmdosFs
+ * @param self the cbmdos filesystem
+ * @param options the new options for the filesystem
+ * @returns 1 if the options will trigger a full rewrite, 0 otherwise and
+ *     -1 on error (invalid options)
+ */
+int CbmdosFs_optionsWillRewrite(const CbmdosFs *self, CbmdosFsOptions options);
 
 /** Re-writes the filesystem to the disk image
  * @memberof CbmdosFs

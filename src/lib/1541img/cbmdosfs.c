@@ -538,6 +538,13 @@ static int validateOptions(CbmdosFsOptions options)
 		"other extended BAM formats.");
 	return -1;
     }
+    if (options.dirInterleave < 1 || options.dirInterleave > 20
+            || options.fileInterleave < 1 || options.fileInterleave > 20)
+    {
+        logmsg(L_ERROR, "Cannot set interleave values outside the range from "
+                "1 to 20.");
+        return -1;
+    }
     return 0;
 }
 
@@ -689,8 +696,36 @@ CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self)
 
 int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options)
 {
-    if (validateOptions(options) < 0) return -1;
+    int needRewrite = CbmdosFs_optionsWillRewrite(self, options);
+    if (needRewrite < 0) return -1;
+    CbmdosFsFlags changedFlags = self->options.flags ^ options.flags;
     self->options = options;
+    if (needRewrite)
+    {
+        CbmdosFs_rewrite(self);
+        return 1;
+    }
+    else if (changedFlags & (CFF_SPEEDDOSBAM|CFF_DOLPHINDOSBAM
+                |CFF_PROLOGICDOSBAM|CFF_ZEROFREE))
+    {
+        updateBam(self);
+        return 1;
+    }
+    return 0;
+}
+
+int CbmdosFs_optionsWillRewrite(const CbmdosFs *self, CbmdosFsOptions options)
+{
+    if (validateOptions(options) < 0) return -1;
+    CbmdosFsFlags changedFlags = self->options.flags ^ options.flags;
+    if (changedFlags & (CFF_FILESONDIRTRACK|CFF_ALLOWLONGDIR)) return 1;
+    if (changedFlags & CFF_42TRACK) return 1;
+    if (!(self->options.flags & CFF_42TRACK) && (changedFlags & CFF_40TRACK))
+    {
+        return 1;
+    }
+    if (options.dirInterleave != self->options.dirInterleave) return 1;
+    if (options.fileInterleave != self->options.fileInterleave) return 1;
     return 0;
 }
 
