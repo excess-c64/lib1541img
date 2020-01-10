@@ -71,6 +71,25 @@ int FileData_append(FileData *self, const uint8_t *data, size_t size);
  */
 int FileData_appendByte(FileData *self, uint8_t byte);
 
+/** Append a single byte repeatedly to the content
+ * @memberof FileData
+ * @param self the file content
+ * @param byte the byte to append
+ * @param count how often to append this byte
+ * @returns 0 on success, -1 on error
+ */
+int FileData_appendBytes(FileData *self, uint8_t byte, size_t count);
+
+/** Set a single byte at a given position of the content.
+ * The position must already exist.
+ * @memberof FileData
+ * @param self the file content
+ * @param byte the byte to set
+ * @param pos the position at which to set the byte
+ * @returns 0 on success, -1 on error
+ */
+int FileData_setByte(FileData *self, uint8_t byte, size_t pos);
+
 /** Event that gets raised when the actual content changes
  * @memberof FileData
  * @param self the file content

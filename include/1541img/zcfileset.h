@@ -37,6 +37,15 @@ typedef struct ZcFileSet ZcFileSet;
  */
 ZcFileSet *ZcFileSet_create(ZcType type, const char *name);
 
+/** Create a ZcFileSet from a FileData instace.
+ * This creates a ZcFileSet from a FileData instance containing a D64 image,
+ * which must contain all the zipcode files.
+ * @memberof ZcFileSet
+ * @param file the FileData instance containing a D64 image
+ * @returns a ZcFileSet containing the zipcode files, or NULL on error
+ */
+ZcFileSet *ZcFileSet_fromFileData(const FileData *file);
+
 /** Create a ZcFileSet from a host file.
  * This creates a ZcFileSet from either a D64 disc image which must contain
  * all the files, or from the files directly from the host file system, in

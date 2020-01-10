@@ -92,11 +92,26 @@ static ZcFileSet *fromD64(const char *filename)
     FILE *d64file = fopen_internal(filename, "rb");
     if (!d64file)
     {
-        logfmt(L_ERROR, "ZcFileSet: error reading `%s'.", filename);
+        logfmt(L_ERROR,
+		"ZcFileSet: error opening `%s' for reading.", filename);
         return 0;
     }
-    D64 *d64 = readD64(d64file);
+    FileData *data = readHostFile(d64file);
+    if (!data)
+    {
+	fclose(d64file);
+	logfmt(L_ERROR, "ZcFileSet: error reading from `%s'.", filename);
+	return 0;
+    }
     fclose(d64file);
+    ZcFileSet *self = ZcFileSet_fromFileData(data);
+    FileData_destroy(data);
+    return self;
+}
+
+ZcFileSet *ZcFileSet_fromFileData(const FileData *file)
+{
+    D64 *d64 = readD64FromFileData(file);
     if (!d64) return 0;
     CbmdosVfs *vfs = CbmdosVfs_create();
     int rc = readCbmdosVfs(vfs, d64, 0);
@@ -114,10 +129,10 @@ static ZcFileSet *fromD64(const char *filename)
     FileData *files[5] = { 0 };
     for (unsigned pos = 0; pos < CbmdosVfs_fileCount(vfs); ++pos)
     {
-        const CbmdosFile *file = CbmdosVfs_rfile(vfs, pos);
-        if (CbmdosFile_type(file) != CFT_PRG) continue;
+        const CbmdosFile *dosfile = CbmdosVfs_rfile(vfs, pos);
+        if (CbmdosFile_type(dosfile) != CFT_PRG) continue;
         uint8_t namelen;
-        const char *name = CbmdosFile_name(file, &namelen);
+        const char *name = CbmdosFile_name(dosfile, &namelen);
         if (namelen < 3) continue;
         if (name[1] != '!' || name[2] == '!') continue;
         if (name[0] < '1' || name[0] > '5') continue;
@@ -132,7 +147,7 @@ static ZcFileSet *fromD64(const char *filename)
             logfmt(L_WARNING, "ZcFileSet: skipping duplicate `%s.PRG'", name);
             continue;
         }
-        files[partidx] = FileData_clone(CbmdosFile_rdata(file));
+        files[partidx] = FileData_clone(CbmdosFile_rdata(dosfile));
         logfmt(L_INFO, "ZcFileSet: found `%s.PRG' (%lu bytes)", name,
                 (unsigned long)FileData_size(files[partidx]));
     }
@@ -148,7 +163,8 @@ ZcFileSet *ZcFileSet_fromFile(const char *filename)
     Filename *fn = Filename_create();
     Filename_setFull(fn, filename);
     char *ext = upperstr(Filename_ext(fn));
-    if (!ext || !strcmp(ext, "PRG"))
+    if ((!ext || strcmp(ext, "D64"))
+	    && Filename_base(fn)[1] == '!')
     {
 	char *base = copystr(Filename_base(fn));
 	if (base[0] >= '1' && base[0] <= '5'

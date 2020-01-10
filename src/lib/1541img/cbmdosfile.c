@@ -3,8 +3,10 @@
 
 #include "util.h"
 #include "log.h"
-#include <1541img/filedata.h>
 #include <1541img/event.h>
+#include <1541img/filedata.h>
+#include <1541img/hostfilereader.h>
+#include <1541img/hostfilewriter.h>
 
 #include <1541img/cbmdosfile.h>
 
@@ -141,6 +143,53 @@ void CbmdosFile_setData(CbmdosFile *self, FileData *data)
     Event_register(FileData_changedEvent(self->data), self, fileDataHandler);
     CbmdosFileEventArgs ea = { CFE_DATACHANGED };
     Event_raise(self->changedEvent, &ea);
+}
+
+int CbmdosFile_exportRaw(const CbmdosFile *self, FILE *file)
+{
+    return writeHostFile(self->data, file);
+}
+
+int CbmdosFile_exportPC64(const CbmdosFile *self, FILE *file)
+{
+    uint8_t header[26] = "C64File";
+    memcpy(header+8, self->name, self->nameLength);
+    if (self->type == CFT_REL) header[25] = self->recordLength;
+    if (fwrite(header, sizeof header, 1, file) != 1) return -1;
+    return writeHostFile(self->data, file);
+}
+
+int CbmdosFile_import(CbmdosFile *self, FILE *file)
+{
+    FileData *data = readHostFile(file);
+    if (!data) return -1;
+    const uint8_t *content = FileData_rcontent(data);
+    if (FileData_size(data) > 26 && !content[24]
+	    && !memcmp(content, "C64File", sizeof "C64File"))
+    {
+	FileData *raw = FileData_create();
+	if (!raw)
+	{
+	    FileData_destroy(data);
+	    return -1;
+	}
+	if (FileData_append(raw, content+26, FileData_size(data)-26) < 0)
+	{
+	    FileData_destroy(raw);
+	    FileData_destroy(data);
+	    return -1;
+	}
+	CbmdosFile_setData(self, raw);
+	CbmdosFile_setName(self, (const char *)content+8,
+		strlen((const char *)content+8));
+	CbmdosFile_setRecordLength(self, content[25] ? content[25] : 254);
+	FileData_destroy(data);
+    }
+    else
+    {
+	CbmdosFile_setData(self, data);
+    }
+    return 0;
 }
 
 uint8_t CbmdosFile_recordLength(const CbmdosFile *self)

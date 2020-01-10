@@ -9,6 +9,7 @@ extern "C" {
  */
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include <1541img/cbmdosfileeventargs.h>
 
@@ -99,6 +100,37 @@ FileData *CbmdosFile_data(CbmdosFile *self);
  * @param data the new file contents
  */
 void CbmdosFile_setData(CbmdosFile *self, FileData *data);
+
+/** Export to a raw host file.
+ * Exports the current file contents to a raw file on the host. Note that for
+ * REL files, this will lose the record length information.
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @param file a file opened for writing to write the contents to
+ * @returns 0 on success, -1 on error
+ */
+int CbmdosFile_exportRaw(const CbmdosFile *self, FILE *file);
+
+/** Export to a PC64 (Pxx/Sxx/Uxx/Rxx) host file.
+ * Exports the current file contents to a file on the host in PC64 format.
+ * This includes the original filename and, for REL files, the record length.
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @param file a file opened for writing to write the contents to
+ * @returns 0 on success, -1 on error
+ */
+int CbmdosFile_exportPC64(const CbmdosFile *self, FILE *file);
+
+/** Import a host file as new file content
+ * Imports a host file as the new file content. PC64 files are automatically
+ * detected and name and record length are set accordingly. All other files
+ * are treated as raw file data.
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @param file a file opened for reading to read the contents from
+ * @returns 0 on success, -1 on error
+ */
+int CbmdosFile_import(CbmdosFile *self, FILE *file);
 
 /** The record length of a REL file
  * @memberof CbmdosFile

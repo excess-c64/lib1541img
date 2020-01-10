@@ -9,16 +9,9 @@
 
 #include <1541img/d64reader.h>
 
-D64 *readD64(FILE *file)
+D64 *readD64FromFileData(const FileData *file)
 {
-    FileData *data = readHostFile(file);
-    if (!data)
-    {
-        logmsg(L_WARNING, "readD64: error reading file.");
-        return 0;
-    }
-
-    size_t size = FileData_size(data);
+    size_t size = FileData_size(file);
     D64Type type;
 
     switch (size)
@@ -36,13 +29,12 @@ D64 *readD64(FILE *file)
             type = D64_42TRACK;
             break;
         default:
-            FileData_destroy(data);
-            logmsg(L_WARNING, "readD64: not a valid D64 file.");
+            logmsg(L_WARNING, "readD64FromFileData: not a valid D64 file.");
             return 0;
     }
 
     D64 *d64 = D64_create(type);
-    const uint8_t *bytes = FileData_rcontent(data);
+    const uint8_t *bytes = FileData_rcontent(file);
     uint8_t tracks = D64_tracks(d64);
     for (uint8_t trackno = 1; trackno <= tracks; ++trackno)
     {
@@ -55,7 +47,19 @@ D64 *readD64(FILE *file)
             bytes += 256;
         }
     }
+    return d64;
+}
 
+D64 *readD64(FILE *file)
+{
+    FileData *data = readHostFile(file);
+    if (!data)
+    {
+        logmsg(L_WARNING, "readD64: error reading file.");
+        return 0;
+    }
+
+    D64 *d64 = readD64FromFileData(data);
     FileData_destroy(data);
     return d64;
 }

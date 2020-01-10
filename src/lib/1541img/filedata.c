@@ -83,6 +83,35 @@ int FileData_appendByte(FileData *self, uint8_t byte)
     return 0;
 }
 
+int FileData_appendBytes(FileData *self, uint8_t byte, size_t count)
+{
+    if (self->size + count < count || self->size + count > FILEDATA_MAXSIZE)
+    {
+        logmsg(L_ERROR, "FileData_appendBytes: maximum size exceeded.");
+        return -1;
+    }
+    while (self->size + count > self->capacity)
+    {
+        self->capacity += FD_CHUNKSIZE;
+        self->content = xrealloc(self->content, self->capacity);
+    }
+    memset(self->content + self->size, byte, count);
+    self->size += count;
+    Event_raise(self->changedEvent, 0);
+    return 0;
+}
+
+int FileData_setByte(FileData *self, uint8_t byte, size_t pos)
+{
+    if (pos >= self->size)
+    {
+	logmsg(L_ERROR, "FileData_setByte: invalid position.");
+	return -1;
+    }
+    self->content[pos] = byte;
+    return 0;
+}
+
 Event *FileData_changedEvent(FileData *self)
 {
     return self->changedEvent;
