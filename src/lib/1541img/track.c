@@ -22,7 +22,7 @@ static uint8_t getsectors(uint8_t tracknum)
     return 17;
 }
 
-Track *Track_create(uint8_t tracknum)
+SOEXPORT Track *Track_create(uint8_t tracknum)
 {
     uint8_t sectors = getsectors(tracknum);
     if (!sectors)
@@ -40,7 +40,7 @@ Track *Track_create(uint8_t tracknum)
     return self;
 }
 
-const Sector *Track_rsector(const Track *self, uint8_t sectornum)
+SOEXPORT const Sector *Track_rsector(const Track *self, uint8_t sectornum)
 {
     if (sectornum >= self->sectors)
     {
@@ -51,7 +51,7 @@ const Sector *Track_rsector(const Track *self, uint8_t sectornum)
     return self->sector[sectornum];
 }
 
-Sector *Track_sector(Track *self, uint8_t sectornum)
+SOEXPORT Sector *Track_sector(Track *self, uint8_t sectornum)
 {
     if (sectornum >= self->sectors)
     {
@@ -62,17 +62,17 @@ Sector *Track_sector(Track *self, uint8_t sectornum)
     return self->sector[sectornum];
 }
 
-uint8_t Track_trackNum(const Track *self)
+SOEXPORT uint8_t Track_trackNum(const Track *self)
 {
     return self->tracknum;
 }
 
-uint8_t Track_sectors(const Track *self)
+SOEXPORT uint8_t Track_sectors(const Track *self)
 {
     return self->sectors;
 }
 
-void Track_destroy(Track *self)
+SOEXPORT void Track_destroy(Track *self)
 {
     if (!self) return;
     for (uint8_t sectornum = 0; sectornum < self->sectors; ++sectornum)

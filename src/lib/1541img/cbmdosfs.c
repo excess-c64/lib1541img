@@ -548,7 +548,7 @@ static int validateOptions(CbmdosFsOptions options)
     return 0;
 }
 
-CbmdosFs *CbmdosFs_create(CbmdosFsOptions options)
+SOEXPORT CbmdosFs *CbmdosFs_create(CbmdosFsOptions options)
 {
     if (validateOptions(options) < 0) return 0;
     CbmdosFs *self = xmalloc(sizeof *self);
@@ -571,7 +571,7 @@ CbmdosFs *CbmdosFs_create(CbmdosFsOptions options)
     return self;
 }
 
-CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options)
+SOEXPORT CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options)
 {
     if (validateOptions(options) < 0) return 0;
     switch (D64_type(d64))
@@ -640,7 +640,7 @@ CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options)
     return self;
 }
 
-CbmdosFs *CbmdosFs_fromVfs(CbmdosVfs *vfs, CbmdosFsOptions options)
+SOEXPORT CbmdosFs *CbmdosFs_fromVfs(CbmdosVfs *vfs, CbmdosFsOptions options)
 {
     if (validateOptions(options) < 0) return 0;
     CbmdosFs *self = xmalloc(sizeof *self);
@@ -669,32 +669,32 @@ CbmdosFs *CbmdosFs_fromVfs(CbmdosVfs *vfs, CbmdosFsOptions options)
     return self;
 }
 
-CbmdosFsStatus CbmdosFs_status(const CbmdosFs *self)
+SOEXPORT CbmdosFsStatus CbmdosFs_status(const CbmdosFs *self)
 {
     return self->status;
 }
 
-const CbmdosVfs *CbmdosFs_rvfs(const CbmdosFs *self)
+SOEXPORT const CbmdosVfs *CbmdosFs_rvfs(const CbmdosFs *self)
 {
     return self->vfs;
 }
 
-CbmdosVfs *CbmdosFs_vfs(CbmdosFs *self)
+SOEXPORT CbmdosVfs *CbmdosFs_vfs(CbmdosFs *self)
 {
     return self->vfs;
 }
 
-const D64 *CbmdosFs_image(const CbmdosFs *self)
+SOEXPORT const D64 *CbmdosFs_image(const CbmdosFs *self)
 {
     return self->d64;
 }
 
-CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self)
+SOEXPORT CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self)
 {
     return self->options;
 }
 
-int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options)
+SOEXPORT int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options)
 {
     int needRewrite = CbmdosFs_optionsWillRewrite(self, options);
     if (needRewrite < 0) return -1;
@@ -714,7 +714,8 @@ int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options)
     return 0;
 }
 
-int CbmdosFs_optionsWillRewrite(const CbmdosFs *self, CbmdosFsOptions options)
+SOEXPORT int CbmdosFs_optionsWillRewrite(
+	const CbmdosFs *self, CbmdosFsOptions options)
 {
     if (validateOptions(options) < 0) return -1;
     CbmdosFsFlags changedFlags = self->options.flags ^ options.flags;
@@ -729,7 +730,7 @@ int CbmdosFs_optionsWillRewrite(const CbmdosFs *self, CbmdosFsOptions options)
     return 0;
 }
 
-int CbmdosFs_rewrite(CbmdosFs *self)
+SOEXPORT int CbmdosFs_rewrite(CbmdosFs *self)
 {
     D64_destroy(self->d64);
     D64Type d64Type = D64_STANDARD;
@@ -758,7 +759,7 @@ int CbmdosFs_rewrite(CbmdosFs *self)
     return 0;
 }
 
-uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self)
+SOEXPORT uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self)
 {
     uint16_t free = 664;
     if (self->options.flags & CFF_42TRACK)
@@ -800,7 +801,7 @@ uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self)
     return free;
 }
 
-void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line)
+SOEXPORT void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line)
 {
     uint16_t rawFree = CbmdosFs_freeBlocks(self);
     int free = (rawFree == 0xffff) ? -1 : rawFree;
@@ -816,7 +817,7 @@ void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line)
     while (*r) *w++ = *r++;
 }
 
-void CbmdosFs_destroy(CbmdosFs *self)
+SOEXPORT void CbmdosFs_destroy(CbmdosFs *self)
 {
     if (!self) return;
     free(self->dir.entries);

@@ -1,12 +1,14 @@
 #ifndef I1541_ZCFILESET_H
 #define I1541_ZCFILESET_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Declarations for the ZcFileSet class
  * @file
  */
+
+#include <1541img/decl.h>
+
+C_CLASS_DECL(CbmdosVfs);
+C_CLASS_DECL(FileData);
 
 /** Type of the zipcode file set */
 typedef enum ZcType
@@ -17,16 +19,13 @@ typedef enum ZcType
                   CURRENTLY UNIMPLEMENTED) */
 } ZcType;
 
-typedef struct FileData FileData;
-typedef struct CbmdosVfs CbmdosVfs;
-
 /** A zipcode file set.
  * This class models zipcode compressed disk images, consisting of multiple
  * files. Standard 35-track images are compressed to 4 files, 40-track images
  * to 5 files and raw GCR images (currently not implemented) to 6 files.
  * @class ZcFileSet zcfileset.h <1541img/zcfileset.h>
  */
-typedef struct ZcFileSet ZcFileSet;
+C_CLASS_DECL(ZcFileSet);
 
 /** default constructor.
  * Creates an empty zipcode file set
@@ -35,16 +34,25 @@ typedef struct ZcFileSet ZcFileSet;
  * @param name the base name of the file set
  * @returns a newly created ZcFileSet
  */
-ZcFileSet *ZcFileSet_create(ZcType type, const char *name);
+DECLEXPORT ZcFileSet *ZcFileSet_create(ZcType type, const char *name);
 
-/** Create a ZcFileSet from a FileData instace.
+/** Create a ZcFileSet from a Cbmdos vfs.
+ * This creates a ZcFileSet from a Cbmdos vfs, which must contain all the
+ * zipcode files.
+ * @memberof ZcFileSet
+ * @param vfs the Cbmdos vfs to search for zipcode files.
+ * @returns a ZcFileSet containing the zipcode files, or NULL on error
+ */
+DECLEXPORT ZcFileSet *ZcFileSet_fromVfs(const CbmdosVfs *vfs);
+
+/** Create a ZcFileSet from a FileData instance.
  * This creates a ZcFileSet from a FileData instance containing a D64 image,
  * which must contain all the zipcode files.
  * @memberof ZcFileSet
  * @param file the FileData instance containing a D64 image
  * @returns a ZcFileSet containing the zipcode files, or NULL on error
  */
-ZcFileSet *ZcFileSet_fromFileData(const FileData *file);
+DECLEXPORT ZcFileSet *ZcFileSet_fromFileData(const FileData *file);
 
 /** Create a ZcFileSet from a host file.
  * This creates a ZcFileSet from either a D64 disc image which must contain
@@ -57,21 +65,21 @@ ZcFileSet *ZcFileSet_fromFileData(const FileData *file);
  *     windows, this *must* be in UTF-8 encoding.
  * @returns a ZcFileSet containing the zipcode files, or NULL on error
  */
-ZcFileSet *ZcFileSet_fromFile(const char *filename);
+DECLEXPORT ZcFileSet *ZcFileSet_fromFile(const char *filename);
 
 /** The zipcode type of this set
  * @memberof ZcFileSet
  * @param self the zipcode file set
  * @returns the zipcode type
  */
-ZcType ZcFileSet_type(const ZcFileSet *self);
+DECLEXPORT ZcType ZcFileSet_type(const ZcFileSet *self);
 
 /** The number of files in this set
  * @memberof ZcFileSet
  * @param self the zipcode file set
  * @returns the number of files
  */
-int ZcFileSet_count(const ZcFileSet *self);
+DECLEXPORT int ZcFileSet_count(const ZcFileSet *self);
 
 /** The base name of this set.
  * The base name is the name of the zipcode files without the prefix (e.g.
@@ -80,7 +88,7 @@ int ZcFileSet_count(const ZcFileSet *self);
  * @param self the zipcode file set
  * @returns the base name
  */
-const char *ZcFileSet_name(const ZcFileSet *self);
+DECLEXPORT const char *ZcFileSet_name(const ZcFileSet *self);
 
 /** Gets the read-only content of a member file
  * @memberof ZcFileSet
@@ -88,7 +96,8 @@ const char *ZcFileSet_name(const ZcFileSet *self);
  * @param index the index number of the member file
  * @returns a read-only pointer to the file content, or NULL on error
  */
-const FileData *ZcFileSet_rfileData(const ZcFileSet *self, int index);
+DECLEXPORT const FileData *ZcFileSet_rfileData(
+	const ZcFileSet *self, int index);
 
 /** Gets the content of a member file
  * @memberof ZcFileSet
@@ -96,7 +105,7 @@ const FileData *ZcFileSet_rfileData(const ZcFileSet *self, int index);
  * @param index the index number of the member file
  * @returns a pointer to the file content, or NULL on error
  */
-FileData *ZcFileSet_fileData(ZcFileSet *self, int index);
+DECLEXPORT FileData *ZcFileSet_fileData(ZcFileSet *self, int index);
 
 /** Save this fileset to the host filesystem.
  * For saving, you can either just provide a directory, in which case the
@@ -109,7 +118,7 @@ FileData *ZcFileSet_fileData(ZcFileSet *self, int index);
  *     UTF-8 encoding.
  * @returns 0 on success, -1 on error
  */
-int ZcFileSet_save(const ZcFileSet *self, const char *filename);
+DECLEXPORT int ZcFileSet_save(const ZcFileSet *self, const char *filename);
 
 /** Save this fileset to a CbmdosVfs.
  * This will use the base name of this set for saving `PRG` files to the given
@@ -119,15 +128,12 @@ int ZcFileSet_save(const ZcFileSet *self, const char *filename);
  * @param vfs the cbmdos vfs to save to
  * @returns 0 on success, -1 on error
  */
-int ZcFileSet_saveVfs(const ZcFileSet *self, CbmdosVfs *vfs);
+DECLEXPORT int ZcFileSet_saveVfs(const ZcFileSet *self, CbmdosVfs *vfs);
 
 /** ZcFileSet destructor
  * @memberof ZcFileSet
  * @param self the zipcode file set
  */
-void ZcFileSet_destroy(ZcFileSet *self);
+DECLEXPORT void ZcFileSet_destroy(ZcFileSet *self);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

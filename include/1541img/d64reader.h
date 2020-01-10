@@ -1,8 +1,5 @@
 #ifndef I1541_D64READER_H
 #define I1541_D64READER_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Contains functions to read a D64 disc image
  * @file
@@ -10,8 +7,10 @@ extern "C" {
 
 #include <stdio.h>
 
-typedef struct D64 D64;
-typedef struct FileData FileData;
+#include <1541img/decl.h>
+
+C_CLASS_DECL(D64);
+C_CLASS_DECL(FileData);
 
 /** Read a D64 disc image from a FileData instance
  * @relatesalso D64
@@ -21,7 +20,7 @@ typedef struct FileData FileData;
  * @param file a FileData instance to read the disc image from
  * @returns a D64 disc image, or NULL on error
  */
-D64 *readD64FromFileData(const FileData *file);
+DECLEXPORT D64 *readD64FromFileData(const FileData *file);
 
 /** Read a D64 disc image from a (host) file.
  * @relatesalso D64
@@ -31,9 +30,6 @@ D64 *readD64FromFileData(const FileData *file);
  * @param file a file opened for reading to read the disc image from
  * @returns a D64 disc image, or NULL on error
  */
-D64 *readD64(FILE *file);
+DECLEXPORT D64 *readD64(FILE *file);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

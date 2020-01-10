@@ -23,7 +23,7 @@ struct Event
     int id;
 };
 
-Event *Event_create(int id, const void *sender)
+SOEXPORT Event *Event_create(int id, const void *sender)
 {
     Event *self = xmalloc(sizeof *self);
     self->sender = sender;
@@ -34,7 +34,7 @@ Event *Event_create(int id, const void *sender)
     return self;
 }
 
-void Event_register(Event *self, void *receiver, EventHandler handler)
+SOEXPORT void Event_register(Event *self, void *receiver, EventHandler handler)
 {
     if (self->size == self->capa)
     {
@@ -47,7 +47,8 @@ void Event_register(Event *self, void *receiver, EventHandler handler)
     ++self->size;
 }
 
-void Event_unregister(Event *self, void *receiver, EventHandler handler)
+SOEXPORT void Event_unregister(
+	Event *self, void *receiver, EventHandler handler)
 {
     size_t pos;
     for (pos = 0; pos < self->size; ++pos)
@@ -69,7 +70,7 @@ void Event_unregister(Event *self, void *receiver, EventHandler handler)
     }
 }
 
-void Event_raise(Event *self, const void *args)
+SOEXPORT void Event_raise(Event *self, const void *args)
 {
     for (size_t i = 0; i < self->size; ++i)
     {
@@ -78,7 +79,7 @@ void Event_raise(Event *self, const void *args)
     }
 }
 
-void Event_destroy(Event *self)
+SOEXPORT void Event_destroy(Event *self)
 {
     if (!self) return;
     free(self->handlers);

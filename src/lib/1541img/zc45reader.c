@@ -104,6 +104,7 @@ static int decoderle(uint8_t *data, const uint8_t *zcfile,
     }
     return 0;
 }
+
 static int decodesector(D64 *d64, const uint8_t *zcfile,
 	size_t *pos, size_t zcfilelen)
 {
@@ -165,7 +166,7 @@ static int decodesector(D64 *d64, const uint8_t *zcfile,
     }
 }
 
-int zc45_read(D64 *d64, const uint8_t *zcfile, size_t zcfilelen)
+SOEXPORT int zc45_read(D64 *d64, const uint8_t *zcfile, size_t zcfilelen)
 {
     if (zcfilelen < 5)
     {

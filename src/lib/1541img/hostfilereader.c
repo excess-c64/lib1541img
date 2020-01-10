@@ -5,7 +5,7 @@
 
 #define RBUFSIZE 1024
 
-FileData *readHostFile(FILE *file)
+SOEXPORT FileData *readHostFile(FILE *file)
 {
     uint8_t buf[RBUFSIZE];
     size_t nread;

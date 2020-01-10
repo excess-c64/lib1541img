@@ -1,8 +1,5 @@
 #ifndef I1541_FILEDATA_H
 #define I1541_FILEDATA_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Declarations for the FileData class
  * @file
@@ -11,7 +8,9 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct Event Event;
+#include <1541img/decl.h>
+
+C_CLASS_DECL(Event);
 
 /** Maximum size of file content (1 MiB)
  * @relatesalso FileData
@@ -23,14 +22,14 @@ typedef struct Event Event;
  * of a CbmdosFile.
  * @class FileData filedata.h <1541img/filedata.h>
  */
-typedef struct FileData FileData;
+C_CLASS_DECL(FileData);
 
 /** default constructor.
  * Creates empty file content
  * @memberof FileData
  * @returns the newly created FileData
  */
-FileData *FileData_create(void);
+DECLEXPORT FileData *FileData_create(void);
 
 /** copy constructor.
  * Creates a new file content that's an exact copy of a given one
@@ -38,21 +37,21 @@ FileData *FileData_create(void);
  * @param self the file content to copy
  * @returns newly created FileData with copied content
  */
-FileData *FileData_clone(const FileData *self);
+DECLEXPORT FileData *FileData_clone(const FileData *self);
 
 /** The size of the content
  * @memberof FileData
  * @param self the file content
  * @returns the size of the content
  */
-size_t FileData_size(const FileData *self);
+DECLEXPORT size_t FileData_size(const FileData *self);
 
 /** Gets the read-only bytes of the content
  * @memberof FileData
  * @param self the file content
  * @returns a read-only pointer to the actual bytes
  */
-const uint8_t *FileData_rcontent(const FileData *self);
+DECLEXPORT const uint8_t *FileData_rcontent(const FileData *self);
 
 /** Append a chunk of bytes to the content
  * @memberof FileData
@@ -61,7 +60,8 @@ const uint8_t *FileData_rcontent(const FileData *self);
  * @param size the number of bytes to append
  * @returns 0 on success, -1 on error
  */
-int FileData_append(FileData *self, const uint8_t *data, size_t size);
+DECLEXPORT int FileData_append(
+	FileData *self, const uint8_t *data, size_t size);
 
 /** Append a single byte to the content
  * @memberof FileData
@@ -69,7 +69,7 @@ int FileData_append(FileData *self, const uint8_t *data, size_t size);
  * @param byte the byte to append
  * @returns 0 on success, -1 on error
  */
-int FileData_appendByte(FileData *self, uint8_t byte);
+DECLEXPORT int FileData_appendByte(FileData *self, uint8_t byte);
 
 /** Append a single byte repeatedly to the content
  * @memberof FileData
@@ -78,7 +78,8 @@ int FileData_appendByte(FileData *self, uint8_t byte);
  * @param count how often to append this byte
  * @returns 0 on success, -1 on error
  */
-int FileData_appendBytes(FileData *self, uint8_t byte, size_t count);
+DECLEXPORT int FileData_appendBytes(
+	FileData *self, uint8_t byte, size_t count);
 
 /** Set a single byte at a given position of the content.
  * The position must already exist.
@@ -88,22 +89,19 @@ int FileData_appendBytes(FileData *self, uint8_t byte, size_t count);
  * @param pos the position at which to set the byte
  * @returns 0 on success, -1 on error
  */
-int FileData_setByte(FileData *self, uint8_t byte, size_t pos);
+DECLEXPORT int FileData_setByte(FileData *self, uint8_t byte, size_t pos);
 
 /** Event that gets raised when the actual content changes
  * @memberof FileData
  * @param self the file content
  * @returns an Event to register to / unregister from
  */
-Event *FileData_changedEvent(FileData *self);
+DECLEXPORT Event *FileData_changedEvent(FileData *self);
 
 /** FileData destructor
  * @memberof FileData
  * @param self the file content
  */
-void FileData_destroy(FileData *self);
+DECLEXPORT void FileData_destroy(FileData *self);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

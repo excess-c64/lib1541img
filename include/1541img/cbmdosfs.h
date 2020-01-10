@@ -1,14 +1,13 @@
 #ifndef I1541_CBMDOSFS_H
 #define I1541_CBMDOSFS_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Declarations for the CbmdosFs class
  * @file
  */
 
 #include <stdint.h>
+
+#include <1541img/decl.h>
 
 #include <1541img/cbmdosfsoptions.h>
 
@@ -30,10 +29,10 @@ typedef enum CbmdosFsStatus
  * * fileInterleave: **10**
  * @relates CbmdosFsOptions
  */
-extern const CbmdosFsOptions CFO_DEFAULT;
+DECLDATA DECLEXPORT const CbmdosFsOptions CFO_DEFAULT;
 
-typedef struct CbmdosVfs CbmdosVfs;
-typedef struct D64 D64;
+C_CLASS_DECL(CbmdosVfs);
+C_CLASS_DECL(D64);
 
 /** Class modeling a concrete cbmdos filesystem.
  * This models the concrete filesystem (mapping to the blocks of a D64 disk
@@ -41,7 +40,7 @@ typedef struct D64 D64;
  * CbmdosVfs managing the actual files.
  * @class CbmdosFs cbmdosfs.h <1541img/cbmdosfs.h>
  */
-typedef struct CbmdosFs CbmdosFs;
+C_CLASS_DECL(CbmdosFs);
 
 /** default constructor.
  * Creates a new cbmdos filesystem
@@ -49,7 +48,7 @@ typedef struct CbmdosFs CbmdosFs;
  * @param options filesystem options
  * @returns a newly created CbmdosFs
  */
-CbmdosFs *CbmdosFs_create(CbmdosFsOptions options);
+DECLEXPORT CbmdosFs *CbmdosFs_create(CbmdosFsOptions options);
 
 /** Create CbmdosFs from a D64 disk image.
  * The filesystem is read from the given D64 image and associated with this
@@ -61,7 +60,7 @@ CbmdosFs *CbmdosFs_create(CbmdosFsOptions options);
  * @param options filesystem options, must be compatible with the image
  * @returns a CbmdosFs reflecting the disk image, or NULL on error
  */
-CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options);
+DECLEXPORT CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options);
 
 /** Create CbmdosFs from a cbmdos virtual filesystem
  * @memberof CbmdosFs
@@ -69,42 +68,42 @@ CbmdosFs *CbmdosFs_fromImage(D64 *d64, CbmdosFsOptions options);
  * @param options filesystem options
  * @returns a CbmdosFs corresponding to the given vfs, or NULL on error
  */
-CbmdosFs *CbmdosFs_fromVfs(CbmdosVfs *vfs, CbmdosFsOptions options);
+DECLEXPORT CbmdosFs *CbmdosFs_fromVfs(CbmdosVfs *vfs, CbmdosFsOptions options);
 
 /** Status of the filesystem
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  * @returns the current status
  */
-CbmdosFsStatus CbmdosFs_status(const CbmdosFs *self);
+DECLEXPORT CbmdosFsStatus CbmdosFs_status(const CbmdosFs *self);
 
 /** Gets the read-only virtual filesystem
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  * @returns a read-only pointer to the virtual filesystem
  */
-const CbmdosVfs *CbmdosFs_rvfs(const CbmdosFs *self);
+DECLEXPORT const CbmdosVfs *CbmdosFs_rvfs(const CbmdosFs *self);
 
 /** Gets the virtual filesystem
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  * @returns a pointer to the virtual filesystem
  */
-CbmdosVfs *CbmdosFs_vfs(CbmdosFs *self);
+DECLEXPORT CbmdosVfs *CbmdosFs_vfs(CbmdosFs *self);
 
 /** Gets the read-only disk image associated with this filesystem
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  * @returns a read-only pointer to the D64 disk image
  */
-const D64 *CbmdosFs_image(const CbmdosFs *self);
+DECLEXPORT const D64 *CbmdosFs_image(const CbmdosFs *self);
 
 /** Gets the current options of the filesystem
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  * @returns the current options of the filesystem
  */
-CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self);
+DECLEXPORT CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self);
 
 /** Sets options for the filesystem.
  * If necessary for the options to apply, this will automatically update the
@@ -116,7 +115,7 @@ CbmdosFsOptions CbmdosFs_options(const CbmdosFs *self);
  * @returns 1 if any changes were made to the disk image, 0 otherwise,
  *     -1 on error (invalid options)
  */
-int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options);
+DECLEXPORT int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options);
 
 /** Check whether changed options would rewrite the image.
  * This can be used to determine whether a full rewrite of the disk image will
@@ -129,14 +128,15 @@ int CbmdosFs_setOptions(CbmdosFs *self, CbmdosFsOptions options);
  * @returns 1 if the options will trigger a full rewrite, 0 otherwise and
  *     -1 on error (invalid options)
  */
-int CbmdosFs_optionsWillRewrite(const CbmdosFs *self, CbmdosFsOptions options);
+DECLEXPORT int CbmdosFs_optionsWillRewrite(
+	const CbmdosFs *self, CbmdosFsOptions options);
 
 /** Re-writes the filesystem to the disk image
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  * @returns 0 on success, -1 on error
  */
-int CbmdosFs_rewrite(CbmdosFs *self);
+DECLEXPORT int CbmdosFs_rewrite(CbmdosFs *self);
 
 /** The number of free blocks in this filesystem.
  * This returns the number of free blocks as reported by cbmdos (optionally
@@ -151,7 +151,7 @@ int CbmdosFs_rewrite(CbmdosFs *self);
  * @param self the cbmdos filesystem
  * @returns number of free blocks, or 0xffff on error
  */
-uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self);
+DECLEXPORT uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self);
 
 /** Get the "free blocks message" as shown in the directory in the C64.
  * This gets the "xxx blocks free." message as shown in the directory, using
@@ -164,15 +164,12 @@ uint16_t CbmdosFs_freeBlocks(const CbmdosFs *self);
  * @param line a pointer to exactly 16 bytes, the line in PETSCII encoding
  *     will be written here, without any 0-termination
  */
-void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line);
+DECLEXPORT void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line);
 
 /** CbmdosFs destructor
  * @memberof CbmdosFs
  * @param self the cbmdos filesystem
  */
-void CbmdosFs_destroy(CbmdosFs *self);
+DECLEXPORT void CbmdosFs_destroy(CbmdosFs *self);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

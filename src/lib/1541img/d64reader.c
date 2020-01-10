@@ -9,7 +9,7 @@
 
 #include <1541img/d64reader.h>
 
-D64 *readD64FromFileData(const FileData *file)
+SOEXPORT D64 *readD64FromFileData(const FileData *file)
 {
     size_t size = FileData_size(file);
     D64Type type;
@@ -50,7 +50,7 @@ D64 *readD64FromFileData(const FileData *file)
     return d64;
 }
 
-D64 *readD64(FILE *file)
+SOEXPORT D64 *readD64(FILE *file)
 {
     FileData *data = readHostFile(file);
     if (!data)

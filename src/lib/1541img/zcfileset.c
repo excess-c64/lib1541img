@@ -24,7 +24,7 @@ struct ZcFileSet
     FileData *files[];
 };
 
-ZcFileSet *ZcFileSet_create(ZcType type, const char *name)
+SOEXPORT ZcFileSet *ZcFileSet_create(ZcType type, const char *name)
 {
     int count;
     switch (type)
@@ -109,19 +109,8 @@ static ZcFileSet *fromD64(const char *filename)
     return self;
 }
 
-ZcFileSet *ZcFileSet_fromFileData(const FileData *file)
+SOEXPORT ZcFileSet *ZcFileSet_fromVfs(const CbmdosVfs *vfs)
 {
-    D64 *d64 = readD64FromFileData(file);
-    if (!d64) return 0;
-    CbmdosVfs *vfs = CbmdosVfs_create();
-    int rc = readCbmdosVfs(vfs, d64, 0);
-    D64_destroy(d64);
-    if (rc < 0)
-    {
-        CbmdosVfs_destroy(vfs);
-        return 0;
-    }
-
     logfmt(L_INFO, "ZcFileSet: checking disk `%s,%s'", CbmdosVfs_name(vfs, 0),
             CbmdosVfs_id(vfs, 0));
 
@@ -152,12 +141,27 @@ ZcFileSet *ZcFileSet_fromFileData(const FileData *file)
                 (unsigned long)FileData_size(files[partidx]));
     }
 
-    ZcFileSet *self = fromFileData(compare, files);
+    return fromFileData(compare, files);
+}
+
+SOEXPORT ZcFileSet *ZcFileSet_fromFileData(const FileData *file)
+{
+    D64 *d64 = readD64FromFileData(file);
+    if (!d64) return 0;
+    CbmdosVfs *vfs = CbmdosVfs_create();
+    int rc = readCbmdosVfs(vfs, d64, 0);
+    D64_destroy(d64);
+    if (rc < 0)
+    {
+        CbmdosVfs_destroy(vfs);
+        return 0;
+    }
+    ZcFileSet *self = ZcFileSet_fromVfs(vfs);
     CbmdosVfs_destroy(vfs);
     return self;
 }
 
-ZcFileSet *ZcFileSet_fromFile(const char *filename)
+SOEXPORT ZcFileSet *ZcFileSet_fromFile(const char *filename)
 {
     ZcFileSet *self = 0;
     Filename *fn = Filename_create();
@@ -206,17 +210,17 @@ ZcFileSet *ZcFileSet_fromFile(const char *filename)
     return self;
 }
 
-ZcType ZcFileSet_type(const ZcFileSet *self)
+SOEXPORT ZcType ZcFileSet_type(const ZcFileSet *self)
 {
     return self->type;
 }
 
-int ZcFileSet_count(const ZcFileSet *self)
+SOEXPORT int ZcFileSet_count(const ZcFileSet *self)
 {
     return self->count;
 }
 
-const char *ZcFileSet_name(const ZcFileSet *self)
+SOEXPORT const char *ZcFileSet_name(const ZcFileSet *self)
 {
     return self->name;
 }
@@ -232,19 +236,19 @@ static int checkIndex(const ZcFileSet *self, int index)
     return 0;
 }
 
-FileData *ZcFileSet_fileData(ZcFileSet *self, int index)
+SOEXPORT FileData *ZcFileSet_fileData(ZcFileSet *self, int index)
 {
     if (checkIndex(self, index) < 0) return 0;
     return self->files[index];
 }
 
-const FileData *ZcFileSet_rfileData(const ZcFileSet *self, int index)
+SOEXPORT const FileData *ZcFileSet_rfileData(const ZcFileSet *self, int index)
 {
     if (checkIndex(self, index) < 0) return 0;
     return self->files[index];
 }
 
-int ZcFileSet_save(const ZcFileSet *self, const char *filename)
+SOEXPORT int ZcFileSet_save(const ZcFileSet *self, const char *filename)
 {
     Filename *fn = Filename_create();
     Filename_setFull(fn, filename);
@@ -295,7 +299,7 @@ int ZcFileSet_save(const ZcFileSet *self, const char *filename)
     return 0;
 }
 
-int ZcFileSet_saveVfs(const ZcFileSet *self, CbmdosVfs *vfs)
+SOEXPORT int ZcFileSet_saveVfs(const ZcFileSet *self, CbmdosVfs *vfs)
 {
     char name[16];
     uint8_t baselen = strlen(self->name) > 14 ? 14 : strlen(self->name);
@@ -320,7 +324,7 @@ int ZcFileSet_saveVfs(const ZcFileSet *self, CbmdosVfs *vfs)
     return 0;
 }
 
-void ZcFileSet_destroy(ZcFileSet *self)
+SOEXPORT void ZcFileSet_destroy(ZcFileSet *self)
 {
     if (!self) return;
     free(self->name);

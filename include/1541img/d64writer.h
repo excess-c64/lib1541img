@@ -1,8 +1,5 @@
 #ifndef I1541_D64WRITER_H
 #define I1541_D64WRITER_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Contains a function to write a D64 disc image to a (host) file
  * @file
@@ -10,7 +7,9 @@ extern "C" {
 
 #include <stdio.h>
 
-typedef struct D64 D64;
+#include <1541img/decl.h>
+
+C_CLASS_DECL(D64);
 
 /** Write a D64 disc image to a (host) file.
  * @relatesalso D64
@@ -21,9 +20,6 @@ typedef struct D64 D64;
  * @param d64 the D64 disc image to write
  * @returns 0 on success, -1 on error
  */
-int writeD64(FILE *file, const D64 *d64);
+DECLEXPORT int writeD64(FILE *file, const D64 *d64);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

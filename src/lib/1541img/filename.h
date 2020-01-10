@@ -1,7 +1,9 @@
 #ifndef FILENAME_H
 #define FILENAME_H
 
-typedef struct Filename Filename;
+#include <1541img/decl.h>
+
+C_CLASS_DECL(Filename);
 
 Filename *Filename_create(void);
 Filename *Filename_clone(const Filename *self);

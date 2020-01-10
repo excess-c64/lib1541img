@@ -15,7 +15,7 @@ struct D64
 
 static const uint8_t tracks[] = {35, 40, 42};
 
-D64 *D64_create(D64Type type)
+SOEXPORT D64 *D64_create(D64Type type)
 {
     if (type < 0 || type > 2)
     {
@@ -31,17 +31,17 @@ D64 *D64_create(D64Type type)
     return self;
 }
 
-D64Type D64_type(const D64 *self)
+SOEXPORT D64Type D64_type(const D64 *self)
 {
     return self->type;
 }
 
-uint8_t D64_tracks(const D64 *self)
+SOEXPORT uint8_t D64_tracks(const D64 *self)
 {
     return tracks[D64_type(self)];
 }
 
-const Track *D64_rtrack(const D64 *self, uint8_t tracknum)
+SOEXPORT const Track *D64_rtrack(const D64 *self, uint8_t tracknum)
 {
     if (!tracknum || tracknum > tracks[D64_type(self)])
     {
@@ -52,7 +52,7 @@ const Track *D64_rtrack(const D64 *self, uint8_t tracknum)
     return self->track[tracknum-1];
 }
 
-Track *D64_track(D64 *self, uint8_t tracknum)
+SOEXPORT Track *D64_track(D64 *self, uint8_t tracknum)
 {
     if (!tracknum || tracknum > tracks[D64_type(self)])
     {
@@ -63,21 +63,22 @@ Track *D64_track(D64 *self, uint8_t tracknum)
     return self->track[tracknum-1];
 }
 
-const Sector *D64_rsector(const D64 *self, uint8_t tracknum, uint8_t sectornum)
+SOEXPORT const Sector *D64_rsector(
+	const D64 *self, uint8_t tracknum, uint8_t sectornum)
 {
     const Track *track = D64_rtrack(self, tracknum);
     if (!track) return 0;
     return Track_rsector(track, sectornum);
 }
 
-Sector *D64_sector(D64 *self, uint8_t tracknum, uint8_t sectornum)
+SOEXPORT Sector *D64_sector(D64 *self, uint8_t tracknum, uint8_t sectornum)
 {
     Track *track = D64_track(self, tracknum);
     if (!track) return 0;
     return Track_sector(track, sectornum);
 }
 
-void D64_destroy(D64 *self)
+SOEXPORT void D64_destroy(D64 *self)
 {
     if (!self) return;
     for (uint8_t tracknum = 0; tracknum < tracks[D64_type(self)]; ++tracknum)

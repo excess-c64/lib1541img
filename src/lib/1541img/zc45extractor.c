@@ -8,7 +8,7 @@
 
 static const int sectorcount[] = { 168, 168, 172, 175, 85 };
 
-D64 *extractZc45(const ZcFileSet *fileset)
+SOEXPORT D64 *extractZc45(const ZcFileSet *fileset)
 {
     if (!fileset) return 0;
     ZcType type = ZcFileSet_type(fileset);

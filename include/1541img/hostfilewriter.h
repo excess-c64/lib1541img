@@ -1,8 +1,5 @@
 #ifndef I1541_HOSTFILEWRITER_H
 #define I1541_HOSTFILEWRITER_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Contains a function to write FileData to a (host) file
  * @file
@@ -10,7 +7,9 @@ extern "C" {
 
 #include <stdio.h>
 
-typedef struct FileData FileData;
+#include <1541img/decl.h>
+
+C_CLASS_DECL(FileData);
 
 /** Write FileData to a (host) file.
  * @relatesalso FileData
@@ -21,9 +20,6 @@ typedef struct FileData FileData;
  * @param file a file opened for writing to write the FileData to
  * @returns 0 on success, -1 on error
  */
-int writeHostFile(const FileData *data, FILE *file);
+DECLEXPORT int writeHostFile(const FileData *data, FILE *file);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

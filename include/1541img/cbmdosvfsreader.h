@@ -1,16 +1,15 @@
 #ifndef I1541_CBMDOSVFSREADER_H
 #define I1541_CBMDOSVFSREADER_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Contains a function to read a cbmdos vfs from a D64 disc image
  * @file
  */
 
-typedef struct D64 D64;
-typedef struct CbmdosVfs CbmdosVfs;
-typedef struct CbmdosFsOptions CbmdosFsOptions;
+#include <1541img/decl.h>
+
+C_CLASS_DECL(D64);
+C_CLASS_DECL(CbmdosVfs);
+C_CLASS_DECL(CbmdosFsOptions);
 
 /** Read a cbmdos vfs from a D64 disc image.
  * @relatesalso CbmdosVfs
@@ -24,8 +23,8 @@ typedef struct CbmdosFsOptions CbmdosFsOptions;
  *    options are assumed when passing NULL here.
  * @returns 0 on success, -1 on error
  */
-int readCbmdosVfs(CbmdosVfs *vfs, const D64 *d64,
-	const CbmdosFsOptions *options);
+DECLEXPORT int readCbmdosVfs(
+	CbmdosVfs *vfs, const D64 *d64, const CbmdosFsOptions *options);
 
 /** Determine cbmdos fs options needed to read from a D64 disc image.
  * @relatesalso CbmdosFsOptions
@@ -40,9 +39,6 @@ int readCbmdosVfs(CbmdosVfs *vfs, const D64 *d64,
  * @param d64 the D64 disc image to read from
  * @returns 0 on success, -1 on error
  */
-int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64);
+DECLEXPORT int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

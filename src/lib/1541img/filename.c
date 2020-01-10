@@ -19,14 +19,14 @@ struct Filename
     char *ext;
 };
 
-Filename *Filename_create(void)
+SOLOCAL Filename *Filename_create(void)
 {
     Filename *self = xmalloc(sizeof *self);
     memset(self, 0, sizeof *self);
     return self;
 }
 
-Filename *Filename_clone(const Filename *self)
+SOLOCAL Filename *Filename_clone(const Filename *self)
 {
     Filename *clone = Filename_create();
     if (self->full) clone->full = copystr(self->full);
@@ -36,27 +36,27 @@ Filename *Filename_clone(const Filename *self)
     return clone;
 }
 
-const char *Filename_full(const Filename *self)
+SOLOCAL const char *Filename_full(const Filename *self)
 {
     return self->full;
 }
 
-const char *Filename_dir(const Filename *self)
+SOLOCAL const char *Filename_dir(const Filename *self)
 {
     return self->dir;
 }
 
-const char *Filename_base(const Filename *self)
+SOLOCAL const char *Filename_base(const Filename *self)
 {
     return self->base;
 }
 
-const char *Filename_ext(const Filename *self)
+SOLOCAL const char *Filename_ext(const Filename *self)
 {
     return self->ext;
 }
 
-void Filename_setFull(Filename *self, const char *full)
+SOLOCAL void Filename_setFull(Filename *self, const char *full)
 {
     free(self->full);
     free(self->dir);
@@ -129,28 +129,28 @@ static void Filename_updateFull(Filename *self)
     }
 }
 
-void Filename_setDir(Filename *self, const char *dir)
+SOLOCAL void Filename_setDir(Filename *self, const char *dir)
 {
     free(self->dir);
     self->dir = copystr(dir);
     Filename_updateFull(self);
 }
 
-void Filename_setBase(Filename *self, const char *base)
+SOLOCAL void Filename_setBase(Filename *self, const char *base)
 {
     free(self->base);
     self->base = copystr(base);
     Filename_updateFull(self);
 }
 
-void Filename_setExt(Filename *self, const char *ext)
+SOLOCAL void Filename_setExt(Filename *self, const char *ext)
 {
     free(self->ext);
     self->ext = copystr(ext);
     Filename_updateFull(self);
 }
 
-void Filename_destroy(Filename *self)
+SOLOCAL void Filename_destroy(Filename *self)
 {
     if (!self) return;
     free(self->full);

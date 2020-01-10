@@ -125,7 +125,7 @@ static int findHeader(size_t *sigpos, uint8_t *dirblocks, size_t *dirpos,
     return 0;
 }
 
-int isLynx(const FileData *file)
+SOEXPORT int isLynx(const FileData *file)
 {
     size_t size = FileData_size(file);
     const uint8_t *content = FileData_rcontent(file);
@@ -136,7 +136,7 @@ int isLynx(const FileData *file)
     return 1;
 }
 
-int extractLynx(CbmdosVfs *vfs, const FileData *file)
+SOEXPORT int extractLynx(CbmdosVfs *vfs, const FileData *file)
 {
     size_t size = FileData_size(file);
     const uint8_t *content = FileData_rcontent(file);
@@ -148,6 +148,11 @@ int extractLynx(CbmdosVfs *vfs, const FileData *file)
 	logmsg(L_ERROR, "extractLynx: not a valid LyNX file.");
 	return -1;
     }
+    char sig[80] = {0};
+    size_t siglen = pos - sigpos - 1;
+    if (siglen >= sizeof sig) siglen = sizeof sig - 1;
+    memcpy(sig, content + sigpos, siglen);
+    logfmt(L_INFO, "extractLynx: found signature `%s'.", sig);
     uint16_t numfiles;
     if (parsePetsciiNum(&numfiles, &pos, content, size) < 0)
     {
@@ -297,7 +302,8 @@ done:
     return rc;
 }
 
-FileData *archiveLynxFiles(const CbmdosFile **files, unsigned filecount)
+SOEXPORT FileData *archiveLynxFiles(
+	const CbmdosFile **files, unsigned filecount)
 {
     FileData *archive = FileData_create();
     FileData *result = 0;
@@ -417,7 +423,7 @@ done:
     return result;
 }
 
-FileData *archiveLynx(const CbmdosVfs *vfs)
+SOEXPORT FileData *archiveLynx(const CbmdosVfs *vfs)
 {
     unsigned filecount = CbmdosVfs_fileCount(vfs);
     if (!filecount) return 0;

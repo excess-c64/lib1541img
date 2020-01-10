@@ -42,7 +42,7 @@ static void fileHandler(void *receiver, int id, const void *sender,
     Event_raise(self->changedEvent, &ea);
 }
 
-CbmdosVfs *CbmdosVfs_create(void)
+SOEXPORT CbmdosVfs *CbmdosVfs_create(void)
 {
     CbmdosVfs *self = xmalloc(sizeof *self);
     memset(self, 0, sizeof *self);
@@ -53,19 +53,19 @@ CbmdosVfs *CbmdosVfs_create(void)
     return self;
 }
 
-uint8_t CbmdosVfs_dosver(const CbmdosVfs *self)
+SOEXPORT uint8_t CbmdosVfs_dosver(const CbmdosVfs *self)
 {
     return self->dosver;
 }
 
-void CbmdosVfs_setDosver(CbmdosVfs *self, uint8_t dosver)
+SOEXPORT void CbmdosVfs_setDosver(CbmdosVfs *self, uint8_t dosver)
 {
     self->dosver = dosver;
     CbmdosVfsEventArgs args = { .what = CVE_DOSVERCHANGED };
     Event_raise(self->changedEvent, &args);
 }
 
-const char *CbmdosVfs_name(const CbmdosVfs *self, uint8_t *length)
+SOEXPORT const char *CbmdosVfs_name(const CbmdosVfs *self, uint8_t *length)
 {
     if (length)
     {
@@ -74,7 +74,8 @@ const char *CbmdosVfs_name(const CbmdosVfs *self, uint8_t *length)
     return self->name;
 }
 
-void CbmdosVfs_setName(CbmdosVfs *self, const char *name, uint8_t length)
+SOEXPORT void CbmdosVfs_setName(
+	CbmdosVfs *self, const char *name, uint8_t length)
 {
     if (length > 16)
     {
@@ -103,7 +104,7 @@ void CbmdosVfs_setName(CbmdosVfs *self, const char *name, uint8_t length)
     Event_raise(self->changedEvent, &args);
 }
 
-const char *CbmdosVfs_id(const CbmdosVfs *self, uint8_t *length)
+SOEXPORT const char *CbmdosVfs_id(const CbmdosVfs *self, uint8_t *length)
 {
     if (length)
     {
@@ -112,7 +113,7 @@ const char *CbmdosVfs_id(const CbmdosVfs *self, uint8_t *length)
     return self->id;
 }
 
-void CbmdosVfs_setId(CbmdosVfs *self, const char *id, uint8_t length)
+SOEXPORT void CbmdosVfs_setId(CbmdosVfs *self, const char *id, uint8_t length)
 {
     if (length > 5)
     {
@@ -141,24 +142,24 @@ void CbmdosVfs_setId(CbmdosVfs *self, const char *id, uint8_t length)
     Event_raise(self->changedEvent, &args);
 }
 
-unsigned CbmdosVfs_fileCount(const CbmdosVfs *self)
+SOEXPORT unsigned CbmdosVfs_fileCount(const CbmdosVfs *self)
 {
     return self->fileCount;
 }
 
-const CbmdosFile *CbmdosVfs_rfile(const CbmdosVfs *self, unsigned pos)
+SOEXPORT const CbmdosFile *CbmdosVfs_rfile(const CbmdosVfs *self, unsigned pos)
 {
     if (pos >= self->fileCount) return 0;
     return self->files[pos];
 }
 
-CbmdosFile *CbmdosVfs_file(CbmdosVfs *self, unsigned pos)
+SOEXPORT CbmdosFile *CbmdosVfs_file(CbmdosVfs *self, unsigned pos)
 {
     if (pos >= self->fileCount) return 0;
     return self->files[pos];
 }
 
-int CbmdosVfs_delete(CbmdosVfs *self, const CbmdosFile *file)
+SOEXPORT int CbmdosVfs_delete(CbmdosVfs *self, const CbmdosFile *file)
 {
     unsigned pos;
     for (pos = 0; pos < self->fileCount; ++pos)
@@ -173,7 +174,7 @@ int CbmdosVfs_delete(CbmdosVfs *self, const CbmdosFile *file)
     return CbmdosVfs_deleteAt(self, pos);
 }
 
-int CbmdosVfs_deleteAt(CbmdosVfs *self, unsigned pos)
+SOEXPORT int CbmdosVfs_deleteAt(CbmdosVfs *self, unsigned pos)
 {
     if (pos >= self->fileCount)
     {
@@ -217,7 +218,7 @@ static int ensureSpace(CbmdosVfs *self)
     return 0;
 }
 
-int CbmdosVfs_append(CbmdosVfs *self, CbmdosFile *file)
+SOEXPORT int CbmdosVfs_append(CbmdosVfs *self, CbmdosFile *file)
 {
     if (ensureSpace(self) < 0) return -1;
     self->files[self->fileCount++] = file;
@@ -230,7 +231,7 @@ int CbmdosVfs_append(CbmdosVfs *self, CbmdosFile *file)
     return 0;
 }
 
-int CbmdosVfs_insert(CbmdosVfs *self, CbmdosFile *file, unsigned pos)
+SOEXPORT int CbmdosVfs_insert(CbmdosVfs *self, CbmdosFile *file, unsigned pos)
 {
     if (pos >= self->fileCount) return CbmdosVfs_append(self, file);
     if (ensureSpace(self) < 0) return -1;
@@ -246,7 +247,7 @@ int CbmdosVfs_insert(CbmdosVfs *self, CbmdosFile *file, unsigned pos)
     return 0;
 }
 
-int CbmdosVfs_move(CbmdosVfs *self, unsigned to, unsigned from)
+SOEXPORT int CbmdosVfs_move(CbmdosVfs *self, unsigned to, unsigned from)
 {
     if (from >= self->fileCount) return -1;
     if (to >= self->fileCount) to = self->fileCount - 1;
@@ -272,7 +273,7 @@ int CbmdosVfs_move(CbmdosVfs *self, unsigned to, unsigned from)
     return 0;
 }
 
-void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line)
+SOEXPORT void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line)
 {
     memset(line, 0xa0, 24);
     line[0] = 0x22;
@@ -283,12 +284,12 @@ void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line)
     memcpy(line+19, self->id, self->idLength);
 }
 
-Event *CbmdosVfs_changedEvent(CbmdosVfs *self)
+SOEXPORT Event *CbmdosVfs_changedEvent(CbmdosVfs *self)
 {
     return self->changedEvent;
 }
 
-void CbmdosVfs_destroy(CbmdosVfs *self)
+SOEXPORT void CbmdosVfs_destroy(CbmdosVfs *self)
 {
     if (!self) return;
     for (unsigned pos = 0; pos < self->fileCount; ++pos)

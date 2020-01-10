@@ -1,8 +1,5 @@
 #ifndef I1541_LOG_H
 #define I1541_LOG_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Declarations for the Logging module
  * @file
@@ -23,6 +20,8 @@ extern "C" {
  */
 
 #include <stdio.h>
+
+#include <1541img/decl.h>
 
 /** The log level of a message
  */
@@ -51,25 +50,22 @@ typedef void (*logwriter)(LogLevel level, const char *message, void *data);
  *
  * @param file the file to write messages to
  */
-void setFileLogger(FILE *file);
+DECLEXPORT void setFileLogger(FILE *file);
 
 /** Setup logging using your own function
  * @param writer your log writing function
  * @param data some additional data to pass to your writing function
  */
-void setCustomLogger(logwriter writer, void *data);
+DECLEXPORT void setCustomLogger(logwriter writer, void *data);
 
 /** Configure the maximum log level
  * lib1541img will suppress any messages less severe than the level given
  * here. By default, DEBUG messages will be suppressed.
  * @param level the maximum level to generate messages for
  */
-void setMaxLogLevel(LogLevel level);
+DECLEXPORT void setMaxLogLevel(LogLevel level);
 
 /**@}*/
 
-#ifdef __cplusplus
-}
-#endif
 #endif
 

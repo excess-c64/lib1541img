@@ -1,16 +1,15 @@
 #ifndef I1541_LYNX_H
 #define I1541_LYNX_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Contains functions for handling LyNX archives
  * @file
  */
 
-typedef struct CbmdosFile CbmdosFile;
-typedef struct CbmdosVfs CbmdosVfs;
-typedef struct FileData FileData;
+#include <1541img/decl.h>
+
+C_CLASS_DECL(CbmdosFile);
+C_CLASS_DECL(CbmdosVfs);
+C_CLASS_DECL(FileData);
 
 /** Check whether a file is in LyNX format
  * @relatesalso FileData
@@ -20,7 +19,7 @@ typedef struct FileData FileData;
  * @param file a FileData instance to check whether it contains a LyNX archive
  * @returns 1 if the file is in LyNX format, 0 otherwise
  */
-int isLynx(const FileData *file);
+DECLEXPORT int isLynx(const FileData *file);
 
 /** Extract files from a LyNX archive
  * @relatesalso CbmdosVfs
@@ -31,7 +30,7 @@ int isLynx(const FileData *file);
  * @param file a FileData instance containing a LyNX archive
  * @returns 0 on success, -1 on error
  */
-int extractLynx(CbmdosVfs *vfs, const FileData *file);
+DECLEXPORT int extractLynx(CbmdosVfs *vfs, const FileData *file);
 
 /** Create a LyNX archive from a set of Cbmdos files
  * @relatesalso CbmdosFile
@@ -42,7 +41,8 @@ int extractLynx(CbmdosVfs *vfs, const FileData *file);
  * @param filecount number of files in the array
  * @returns a new FileData instance of the LyNX archive, or NULL on error
  */
-FileData *archiveLynxFiles(const CbmdosFile **files, unsigned filecount);
+DECLEXPORT FileData *archiveLynxFiles(
+	const CbmdosFile **files, unsigned filecount);
 
 /** Create a LyNX archive from all files in a Cbmdos vfs
  * @relatesalso CbmdosVfs
@@ -52,9 +52,6 @@ FileData *archiveLynxFiles(const CbmdosFile **files, unsigned filecount);
  * @param vfs a CbmdosVfs instance containing the files to archive with LyNX
  * @returns a new FileData instance of the LyNX archive, or NULL on error
  */
-FileData *archiveLynx(const CbmdosVfs *vfs);
+DECLEXPORT FileData *archiveLynx(const CbmdosVfs *vfs);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

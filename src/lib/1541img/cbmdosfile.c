@@ -19,7 +19,7 @@ static const char *exts[] =
     "REL"
 };
 
-const char *CbmdosFileType_name(CbmdosFileType type)
+SOEXPORT const char *CbmdosFileType_name(CbmdosFileType type)
 {
     if (type < CFT_DEL || type > CFT_REL) return 0;
     return exts[type];
@@ -50,7 +50,7 @@ static void fileDataHandler(void *receiver, int id, const void *sender,
     Event_raise(self->changedEvent, &ea);
 }
 
-CbmdosFile *CbmdosFile_create(void)
+SOEXPORT CbmdosFile *CbmdosFile_create(void)
 {
     CbmdosFile *self = xmalloc(sizeof *self);
     memset(self, 0, sizeof *self);
@@ -64,12 +64,12 @@ CbmdosFile *CbmdosFile_create(void)
     return self;
 }
 
-CbmdosFileType CbmdosFile_type(const CbmdosFile *self)
+SOEXPORT CbmdosFileType CbmdosFile_type(const CbmdosFile *self)
 {
     return self->type;
 }
 
-int CbmdosFile_setType(CbmdosFile *self, CbmdosFileType type)
+SOEXPORT int CbmdosFile_setType(CbmdosFile *self, CbmdosFileType type)
 {
     if (type < CFT_DEL || type > CFT_REL)
     {
@@ -87,7 +87,7 @@ int CbmdosFile_setType(CbmdosFile *self, CbmdosFileType type)
     return 0;
 }
 
-const char *CbmdosFile_name(const CbmdosFile *self, uint8_t *length)
+SOEXPORT const char *CbmdosFile_name(const CbmdosFile *self, uint8_t *length)
 {
     if (length)
     {
@@ -96,7 +96,8 @@ const char *CbmdosFile_name(const CbmdosFile *self, uint8_t *length)
     return self->name;
 }
 
-void CbmdosFile_setName(CbmdosFile *self, const char *name, uint8_t length)
+SOEXPORT void CbmdosFile_setName(
+	CbmdosFile *self, const char *name, uint8_t length)
 {
     if (length > 16)
     {
@@ -125,17 +126,17 @@ void CbmdosFile_setName(CbmdosFile *self, const char *name, uint8_t length)
     Event_raise(self->changedEvent, &args);
 }
 
-const FileData *CbmdosFile_rdata(const CbmdosFile *self)
+SOEXPORT const FileData *CbmdosFile_rdata(const CbmdosFile *self)
 {
     return self->data;
 }
 
-FileData *CbmdosFile_data(CbmdosFile *self)
+SOEXPORT FileData *CbmdosFile_data(CbmdosFile *self)
 {
     return self->data;
 }
 
-void CbmdosFile_setData(CbmdosFile *self, FileData *data)
+SOEXPORT void CbmdosFile_setData(CbmdosFile *self, FileData *data)
 {
     Event_unregister(FileData_changedEvent(self->data), self, fileDataHandler);
     FileData_destroy(self->data);
@@ -145,12 +146,12 @@ void CbmdosFile_setData(CbmdosFile *self, FileData *data)
     Event_raise(self->changedEvent, &ea);
 }
 
-int CbmdosFile_exportRaw(const CbmdosFile *self, FILE *file)
+SOEXPORT int CbmdosFile_exportRaw(const CbmdosFile *self, FILE *file)
 {
     return writeHostFile(self->data, file);
 }
 
-int CbmdosFile_exportPC64(const CbmdosFile *self, FILE *file)
+SOEXPORT int CbmdosFile_exportPC64(const CbmdosFile *self, FILE *file)
 {
     uint8_t header[26] = "C64File";
     memcpy(header+8, self->name, self->nameLength);
@@ -159,7 +160,7 @@ int CbmdosFile_exportPC64(const CbmdosFile *self, FILE *file)
     return writeHostFile(self->data, file);
 }
 
-int CbmdosFile_import(CbmdosFile *self, FILE *file)
+SOEXPORT int CbmdosFile_import(CbmdosFile *self, FILE *file)
 {
     FileData *data = readHostFile(file);
     if (!data) return -1;
@@ -192,12 +193,12 @@ int CbmdosFile_import(CbmdosFile *self, FILE *file)
     return 0;
 }
 
-uint8_t CbmdosFile_recordLength(const CbmdosFile *self)
+SOEXPORT uint8_t CbmdosFile_recordLength(const CbmdosFile *self)
 {
     return self->recordLength;
 }
 
-int CbmdosFile_setRecordLength(CbmdosFile *self, uint8_t recordLength)
+SOEXPORT int CbmdosFile_setRecordLength(CbmdosFile *self, uint8_t recordLength)
 {
     if (recordLength > 254)
     {
@@ -217,7 +218,7 @@ int CbmdosFile_setRecordLength(CbmdosFile *self, uint8_t recordLength)
     return 0;
 }
 
-uint16_t CbmdosFile_realBlocks(const CbmdosFile *self)
+SOEXPORT uint16_t CbmdosFile_realBlocks(const CbmdosFile *self)
 {
     if (self->type == CFT_DEL || !self->data) return 0;
     size_t size = FileData_size(self->data);
@@ -226,49 +227,50 @@ uint16_t CbmdosFile_realBlocks(const CbmdosFile *self)
     return blocks;
 }
 
-uint16_t CbmdosFile_blocks(const CbmdosFile *self)
+SOEXPORT uint16_t CbmdosFile_blocks(const CbmdosFile *self)
 {
     if (self->forcedBlocks != 0xffff) return self->forcedBlocks;
     return CbmdosFile_realBlocks(self);
 }
 
-uint16_t CbmdosFile_forcedBlocks(const CbmdosFile *self)
+SOEXPORT uint16_t CbmdosFile_forcedBlocks(const CbmdosFile *self)
 {
     return self->forcedBlocks;
 }
 
-void CbmdosFile_setForcedBlocks(CbmdosFile *self, uint16_t forcedBlocks)
+SOEXPORT void CbmdosFile_setForcedBlocks(
+	CbmdosFile *self, uint16_t forcedBlocks)
 {
     self->forcedBlocks = forcedBlocks;
     CbmdosFileEventArgs args = { CFE_FORCEDBLOCKSCHANGED };
     Event_raise(self->changedEvent, &args);
 }
 
-int CbmdosFile_locked(const CbmdosFile *self)
+SOEXPORT int CbmdosFile_locked(const CbmdosFile *self)
 {
     return self->locked;
 }
 
-void CbmdosFile_setLocked(CbmdosFile *self, int locked)
+SOEXPORT void CbmdosFile_setLocked(CbmdosFile *self, int locked)
 {
     self->locked = locked;
     CbmdosFileEventArgs args = { CFE_LOCKEDCHANGED };
     Event_raise(self->changedEvent, &args);
 }
 
-int CbmdosFile_closed(const CbmdosFile *self)
+SOEXPORT int CbmdosFile_closed(const CbmdosFile *self)
 {
     return self->closed;
 }
 
-void CbmdosFile_setClosed(CbmdosFile *self, int closed)
+SOEXPORT void CbmdosFile_setClosed(CbmdosFile *self, int closed)
 {
     self->closed = closed;
     CbmdosFileEventArgs args = { CFE_CLOSEDCHANGED };
     Event_raise(self->changedEvent, &args);
 }
 
-void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line)
+SOEXPORT void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line)
 {
     int blocklen = sprintf((char *)line, "%u", CbmdosFile_blocks(self));
     memset(line + blocklen, 0xa0, 28 - blocklen);
@@ -282,12 +284,12 @@ void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line)
     if (self->locked) line[27] = 0x3c;
 }
 
-Event *CbmdosFile_changedEvent(CbmdosFile *self)
+SOEXPORT Event *CbmdosFile_changedEvent(CbmdosFile *self)
 {
     return self->changedEvent;
 }
 
-void CbmdosFile_destroy(CbmdosFile *self)
+SOEXPORT void CbmdosFile_destroy(CbmdosFile *self)
 {
     if (!self) return;
     free(self->name);

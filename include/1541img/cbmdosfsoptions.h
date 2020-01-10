@@ -1,12 +1,11 @@
 #ifndef I1541_CBMDOSFSOPTIONS_H
 #define I1541_CBMDOSFSOPTIONS_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Declaration of CbmdosFs Options
  * @file
  */
+
+#include <1541img/decl.h>
 
 /** Some flags defining behavior of the filesystem.
  * Most of them can be combined freely. CFF_42TRACK will override CFF_40TRACK
@@ -39,15 +38,14 @@ typedef enum CbmdosFsFlags
 /** Filesystem options
  * @struct CbmdosFsOptions cbmdosfsoptions.h <1541img/cbmdosfsoptions.h>
  */
-typedef struct CbmdosFsOptions
+C_CLASS_DECL(CbmdosFsOptions);
+
+struct CbmdosFsOptions
 {
     CbmdosFsFlags flags;            /**< filesystem flags */
     uint8_t dirInterleave;          /**< sector interleave to use for
                                          directory */
     uint8_t fileInterleave;         /**< sector interleave to use for files */
-} CbmdosFsOptions;
+};
 
-#ifdef __cplusplus
-}
-#endif
 #endif

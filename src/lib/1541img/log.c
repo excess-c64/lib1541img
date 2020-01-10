@@ -33,14 +33,14 @@ static void writeFile(LogLevel level, const char *message, void *data)
     fflush(target);
 }
 
-void logmsg(LogLevel level, const char *message)
+SOLOCAL void logmsg(LogLevel level, const char *message)
 {
     if (logsilent && level > L_ERROR) return;
     if (level > maxlevel) return;
     currentwriter(level, message, writerdata);
 }
 
-void logfmt(LogLevel level, const char *format, ...)
+SOLOCAL void logfmt(LogLevel level, const char *format, ...)
 {
     if (logsilent && level > L_ERROR) return;
     if (level > maxlevel) return;
@@ -52,24 +52,24 @@ void logfmt(LogLevel level, const char *format, ...)
     logmsg(level, buf);
 }
 
-void logsetsilent(int silent)
+SOLOCAL void logsetsilent(int silent)
 {
     logsilent = silent;
 }
 
-void setFileLogger(FILE *file)
+SOEXPORT void setFileLogger(FILE *file)
 {
     currentwriter = writeFile;
     writerdata = file;
 }
 
-void setCustomLogger(logwriter writer, void *data)
+SOEXPORT void setCustomLogger(logwriter writer, void *data)
 {
     currentwriter = writer;
     writerdata = data;
 }
 
-void setMaxLogLevel(LogLevel level)
+SOEXPORT void setMaxLogLevel(LogLevel level)
 {
     maxlevel = level;
 }

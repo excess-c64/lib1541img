@@ -1,12 +1,11 @@
 #ifndef I1541_CBMDOSVFSEVENTARGS_H
 #define I1541_CBMDOSVFSEVENTARGS_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Declaration of CbmdosVfs Event arguments
  * @file
  */
+
+#include <1541img/decl.h>
 
 #include <1541img/cbmdosfileeventargs.h>
 
@@ -14,7 +13,9 @@ extern "C" {
  * @struct CbmdosVfsEventArgs cbmdosvfseventargs.h \
  *     <1541img/cbmdosvfseventargs.h>
  */
-typedef struct CbmdosVfsEventArgs
+C_CLASS_DECL(CbmdosVfsEventArgs);
+
+struct CbmdosVfsEventArgs
 {
     enum {
         CVE_DOSVERCHANGED,  /**< the dos version number changed */
@@ -31,9 +32,6 @@ typedef struct CbmdosVfsEventArgs
                                  affected by the change */
     unsigned targetpos;	    /**< for file moved events, the target position
 			         of the moved file */
-} CbmdosVfsEventArgs;
+};
 
-#ifdef __cplusplus
-}
-#endif
 #endif

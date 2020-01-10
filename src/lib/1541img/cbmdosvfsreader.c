@@ -34,7 +34,7 @@ static int parseTrackBam(uint8_t *bamdata, uint8_t sectors,
     return 0;
 }
 
-int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
+SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 	const CbmdosFsOptions *options,
 	uint8_t (*bamdata)[21], DirData *dirdata)
 {
@@ -354,7 +354,7 @@ done:
     return rc;
 }
 
-int readCbmdosVfs(CbmdosVfs *vfs, const D64 *d64,
+SOEXPORT int readCbmdosVfs(CbmdosVfs *vfs, const D64 *d64,
 	const CbmdosFsOptions *options)
 {
     CbmdosFsOptions probeopts = CFO_DEFAULT;
@@ -366,7 +366,7 @@ int readCbmdosVfs(CbmdosVfs *vfs, const D64 *d64,
     return readCbmdosVfsInternal(vfs, d64, options, 0, 0);
 }
 
-int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
+SOEXPORT int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 {
     CbmdosFsOptions probeopts = CFO_DEFAULT;
     if (options->flags & CFF_RECOVER)

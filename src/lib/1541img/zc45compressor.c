@@ -9,7 +9,7 @@
 
 #include <1541img/zc45compressor.h>
 
-ZcFileSet *compressZc45(const D64 *d64)
+SOEXPORT ZcFileSet *compressZc45(const D64 *d64)
 {
     char name[17];
     uint8_t buf[MAXZCFILESIZE];

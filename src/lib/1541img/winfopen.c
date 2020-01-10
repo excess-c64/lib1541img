@@ -3,7 +3,9 @@
 #include <string.h>
 #include <windows.h>
 
-FILE *winfopen(const char *path, const char *mode)
+#include "util.h"
+
+SOLOCAL FILE *winfopen(const char *path, const char *mode)
 {
     LPWSTR wpath;
     LPWSTR wmode;

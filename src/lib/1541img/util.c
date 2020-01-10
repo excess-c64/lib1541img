@@ -6,7 +6,7 @@
 
 #include "util.h"
 
-void *xmalloc(size_t size)
+SOLOCAL void *xmalloc(size_t size)
 {
     void *m = malloc(size);
     if (!m)
@@ -17,7 +17,7 @@ void *xmalloc(size_t size)
     return m;
 }
 
-void *xrealloc(void *ptr, size_t size)
+SOLOCAL void *xrealloc(void *ptr, size_t size)
 {
     void *m = realloc(ptr, size);
     if (!m)
@@ -28,7 +28,7 @@ void *xrealloc(void *ptr, size_t size)
     return m;
 }
 
-char *copystr(const char *src)
+SOLOCAL char *copystr(const char *src)
 {
     if (!src) return 0;
     char *copy = xmalloc(strlen(src) +1);
@@ -36,7 +36,7 @@ char *copystr(const char *src)
     return copy;
 }
 
-char *upperstr(const char *src)
+SOLOCAL char *upperstr(const char *src)
 {
     if (!src) return 0;
     char *upper = xmalloc(strlen(src) +1);

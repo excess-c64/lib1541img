@@ -1,8 +1,5 @@
 #ifndef I1541_CBMDOSVFS_H
 #define I1541_CBMDOSVFS_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Declarations for the CbmdosVfs class
  * @file
@@ -10,10 +7,12 @@ extern "C" {
 
 #include <stdint.h>
 
+#include <1541img/decl.h>
+
 #include <1541img/cbmdosvfseventargs.h>
 
-typedef struct Event Event;
-typedef struct CbmdosFile CbmdosFile;
+C_CLASS_DECL(Event);
+C_CLASS_DECL(CbmdosFile);
 
 /** Class modeling a virtual cbmdos filesystem.
  * This models the virtual filesystem, containing a flat directory and
@@ -22,28 +21,28 @@ typedef struct CbmdosFile CbmdosFile;
  * filesystem in CbmdosFs.
  * @class CbmdosVfs cbmdosvfs.h <1541img/cbmdosvfs.h>
  */
-typedef struct CbmdosVfs CbmdosVfs;
+C_CLASS_DECL(CbmdosVfs);
 
 /** default constructor.
  * Creates an empty cbmdos vfs
  * @memberof CbmdosVfs
  * @returns a newly created CbmdosVfs
  */
-CbmdosVfs *CbmdosVfs_create(void);
+DECLEXPORT CbmdosVfs *CbmdosVfs_create(void);
 
 /** The dos version number
  * @memberof CbmdosVfs
  * @param self the cbmdos vfs
  * @returns the dos version number
  */
-uint8_t CbmdosVfs_dosver(const CbmdosVfs *self);
+DECLEXPORT uint8_t CbmdosVfs_dosver(const CbmdosVfs *self);
 
 /** Set the dos version number
  * @memberof CbmdosVfs
  * @param self the cbmdos vfs
  * @param dosver the new dos version number (default is 0x41)
  */
-void CbmdosVfs_setDosver(CbmdosVfs *self, uint8_t dosver);
+DECLEXPORT void CbmdosVfs_setDosver(CbmdosVfs *self, uint8_t dosver);
 
 /** The raw name of the filesystem.
  * This is what appears as the title of the disc in the directory.
@@ -52,7 +51,7 @@ void CbmdosVfs_setDosver(CbmdosVfs *self, uint8_t dosver);
  * @param length if not NULL, the length of the raw name is written here
  * @returns a pointer to the raw name (this is NOT a NULL-terminated C string!)
  */
-const char *CbmdosVfs_name(const CbmdosVfs *self, uint8_t *length);
+DECLEXPORT const char *CbmdosVfs_name(const CbmdosVfs *self, uint8_t *length);
 
 /** Set the raw name of the filesystem.
  * This sets a new name of the filesystem (what appears as the title of the
@@ -63,7 +62,8 @@ const char *CbmdosVfs_name(const CbmdosVfs *self, uint8_t *length);
  * @param name pointer to the new name (doesn't need to be NULL-terminated)
  * @param length the length of the new name
  */
-void CbmdosVfs_setName(CbmdosVfs *self, const char *name, uint8_t length);
+DECLEXPORT void CbmdosVfs_setName(
+	CbmdosVfs *self, const char *name, uint8_t length);
 
 /** The disc ID of the filesystem.
  * This is what appears in the ID field (and possibly extending over the
@@ -73,7 +73,7 @@ void CbmdosVfs_setName(CbmdosVfs *self, const char *name, uint8_t length);
  * @param length if not NULL, the length of the disc ID is written here
  * @returns a pointer to the disc ID (this is NOT a NULL-terminated C string!)
  */
-const char *CbmdosVfs_id(const CbmdosVfs *self, uint8_t *length);
+DECLEXPORT const char *CbmdosVfs_id(const CbmdosVfs *self, uint8_t *length);
 
 /** Set the disc ID of the filesystem.
  * This sets a new disc ID. It can have up to 5 bytes, to extend over the DOS
@@ -86,14 +86,15 @@ const char *CbmdosVfs_id(const CbmdosVfs *self, uint8_t *length);
  * @param id pointer to the new ID (doesn't need to be NULL-terminated)
  * @param length the length of the new ID
  */
-void CbmdosVfs_setId(CbmdosVfs *self, const char *id, uint8_t length);
+DECLEXPORT void CbmdosVfs_setId(
+	CbmdosVfs *self, const char *id, uint8_t length);
 
 /** Number of files in this filesystem
  * @memberof CbmdosVfs
  * @param self the cbmdos vfs
  * @returns the current number of files in this filesystem
  */
-unsigned CbmdosVfs_fileCount(const CbmdosVfs *self);
+DECLEXPORT unsigned CbmdosVfs_fileCount(const CbmdosVfs *self);
 
 /** Gets a read-only file from this filesystem
  * @memberof CbmdosVfs
@@ -101,7 +102,8 @@ unsigned CbmdosVfs_fileCount(const CbmdosVfs *self);
  * @param pos the position of the file to get (starting at 0)
  * @returns a read-only pointer to the file, or NULL on error
  */
-const CbmdosFile *CbmdosVfs_rfile(const CbmdosVfs *self, unsigned pos);
+DECLEXPORT const CbmdosFile *CbmdosVfs_rfile(
+	const CbmdosVfs *self, unsigned pos);
 
 /** Gets a file from this filesystem
  * @memberof CbmdosVfs
@@ -109,7 +111,7 @@ const CbmdosFile *CbmdosVfs_rfile(const CbmdosVfs *self, unsigned pos);
  * @param pos the position of the file to get (starting at 0)
  * @returns a pointer to the file, or NULL on error
  */
-CbmdosFile *CbmdosVfs_file(CbmdosVfs *self, unsigned pos);
+DECLEXPORT CbmdosFile *CbmdosVfs_file(CbmdosVfs *self, unsigned pos);
 
 /** Delete a given file from the filesystem
  * @memberof CbmdosVfs
@@ -117,7 +119,7 @@ CbmdosFile *CbmdosVfs_file(CbmdosVfs *self, unsigned pos);
  * @param file the file to delete
  * @returns 0 on success, -1 on error
  */
-int CbmdosVfs_delete(CbmdosVfs *self, const CbmdosFile *file);
+DECLEXPORT int CbmdosVfs_delete(CbmdosVfs *self, const CbmdosFile *file);
 
 /** Delete a file at a given position
  * @memberof CbmdosVfs
@@ -125,7 +127,7 @@ int CbmdosVfs_delete(CbmdosVfs *self, const CbmdosFile *file);
  * @param pos position of the file to delete (starting at 0)
  * @returns 0 on success, -1 on error
  */
-int CbmdosVfs_deleteAt(CbmdosVfs *self, unsigned pos);
+DECLEXPORT int CbmdosVfs_deleteAt(CbmdosVfs *self, unsigned pos);
 
 /** Append a file to the filesystem
  * @memberof CbmdosVfs
@@ -133,7 +135,7 @@ int CbmdosVfs_deleteAt(CbmdosVfs *self, unsigned pos);
  * @param file the file to append
  * @returns 0 on success, -1 on error
  */
-int CbmdosVfs_append(CbmdosVfs *self, CbmdosFile *file);
+DECLEXPORT int CbmdosVfs_append(CbmdosVfs *self, CbmdosFile *file);
 
 /** Insert a file at a given position
  * @memberof CbmdosVfs
@@ -143,7 +145,8 @@ int CbmdosVfs_append(CbmdosVfs *self, CbmdosFile *file);
  *            greater or equal to the number of files, the file is appended.
  * @returns 0 on success, -1 on error
  */
-int CbmdosVfs_insert(CbmdosVfs *self, CbmdosFile *file, unsigned pos);
+DECLEXPORT int CbmdosVfs_insert(
+	CbmdosVfs *self, CbmdosFile *file, unsigned pos);
 
 /** Move a file to another position
  * @memberof CbmdosVfs
@@ -155,7 +158,7 @@ int CbmdosVfs_insert(CbmdosVfs *self, CbmdosFile *file, unsigned pos);
  *             must be smaller than the number of files.
  * @returns 0 on success, -1 on error
  */
-int CbmdosVfs_move(CbmdosVfs *self, unsigned to, unsigned from);
+DECLEXPORT int CbmdosVfs_move(CbmdosVfs *self, unsigned to, unsigned from);
 
 /** Get the header line of a directory.
  * Gets a header line as displayed in a directory on the C64, without the
@@ -165,22 +168,19 @@ int CbmdosVfs_move(CbmdosVfs *self, unsigned to, unsigned from);
  * @param line a pointer to exactly 24 bytes, the line in PETSCII encoding
  *     will be written here, without any 0-termination.
  */
-void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line);
+DECLEXPORT void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line);
 
 /** Event that gets raised on any changes to the filesystem
  * @memberof CbmdosVfs
  * @param self the cbmdos vfs
  * @returns an Event to register to / unregister from
  */
-Event *CbmdosVfs_changedEvent(CbmdosVfs *self);
+DECLEXPORT Event *CbmdosVfs_changedEvent(CbmdosVfs *self);
 
 /** CbmdosVfs destructor
  * @memberof CbmdosVfs
  * @param self the cbmdos vfs
  */
-void CbmdosVfs_destroy(CbmdosVfs *self);
+DECLEXPORT void CbmdosVfs_destroy(CbmdosVfs *self);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

@@ -17,7 +17,7 @@ struct FileData
     uint8_t *content;
 };
 
-FileData *FileData_create(void)
+SOEXPORT FileData *FileData_create(void)
 {
     FileData *self = xmalloc(sizeof *self);
     self->content = xmalloc(FD_CHUNKSIZE);
@@ -27,7 +27,7 @@ FileData *FileData_create(void)
     return self;
 }
 
-FileData *FileData_clone(const FileData *self)
+SOEXPORT FileData *FileData_clone(const FileData *self)
 {
     FileData *cloned = xmalloc(sizeof *cloned);
     cloned->size = self->size;
@@ -38,17 +38,17 @@ FileData *FileData_clone(const FileData *self)
     return cloned;
 }
 
-size_t FileData_size(const FileData *self)
+SOEXPORT size_t FileData_size(const FileData *self)
 {
     return self->size;
 }
 
-const uint8_t *FileData_rcontent(const FileData *self)
+SOEXPORT const uint8_t *FileData_rcontent(const FileData *self)
 {
     return self->content;
 }
 
-int FileData_append(FileData *self, const uint8_t *data, size_t size)
+SOEXPORT int FileData_append(FileData *self, const uint8_t *data, size_t size)
 {
     if (self->size + size < size || self->size + size > FILEDATA_MAXSIZE)
     {
@@ -66,7 +66,7 @@ int FileData_append(FileData *self, const uint8_t *data, size_t size)
     return 0;
 }
 
-int FileData_appendByte(FileData *self, uint8_t byte)
+SOEXPORT int FileData_appendByte(FileData *self, uint8_t byte)
 {
     if (self->size == FILEDATA_MAXSIZE)
     {
@@ -83,7 +83,7 @@ int FileData_appendByte(FileData *self, uint8_t byte)
     return 0;
 }
 
-int FileData_appendBytes(FileData *self, uint8_t byte, size_t count)
+SOEXPORT int FileData_appendBytes(FileData *self, uint8_t byte, size_t count)
 {
     if (self->size + count < count || self->size + count > FILEDATA_MAXSIZE)
     {
@@ -101,7 +101,7 @@ int FileData_appendBytes(FileData *self, uint8_t byte, size_t count)
     return 0;
 }
 
-int FileData_setByte(FileData *self, uint8_t byte, size_t pos)
+SOEXPORT int FileData_setByte(FileData *self, uint8_t byte, size_t pos)
 {
     if (pos >= self->size)
     {
@@ -112,12 +112,12 @@ int FileData_setByte(FileData *self, uint8_t byte, size_t pos)
     return 0;
 }
 
-Event *FileData_changedEvent(FileData *self)
+SOEXPORT Event *FileData_changedEvent(FileData *self)
 {
     return self->changedEvent;
 }
 
-void FileData_destroy(FileData *self)
+SOEXPORT void FileData_destroy(FileData *self)
 {
     if (!self) return;
     Event_destroy(self->changedEvent);

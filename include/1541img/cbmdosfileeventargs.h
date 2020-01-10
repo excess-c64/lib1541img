@@ -1,18 +1,19 @@
 #ifndef I1541_CBMDOSFILEEVENTARGS_H
 #define I1541_CBMDOSFILEEVENTARGS_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Declaration of CbmdosFile Event arguments
  * @file
  */
 
+#include <1541img/decl.h>
+
 /** Arguments for events raised by CbmdosFile
  * @struct CbmdosFileEventArgs cbmdosfileeventargs.h \
  *     <1541img/cbmdosfileeventargs.h>
  */
-typedef struct CbmdosFileEventArgs
+C_CLASS_DECL(CbmdosFileEventArgs);
+
+struct CbmdosFileEventArgs
 {
     enum {
         CFE_TYPECHANGED,            /**< type of a file changed */
@@ -23,9 +24,6 @@ typedef struct CbmdosFileEventArgs
 	CFE_FORCEDBLOCKSCHANGED,    /**< forced blocks size of a file changed */
         CFE_RECORDLENGTHCHANGED     /**< REL record length of a file changed */
     } what;     /**< describes what happened to the file */
-} CbmdosFileEventArgs;
+};
 
-#ifdef __cplusplus
-}
-#endif
 #endif

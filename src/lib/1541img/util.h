@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#include <1541img/decl.h>
+
 void *xmalloc(size_t size);
 void *xrealloc(void *ptr, size_t size);
 char *copystr(const char *src);

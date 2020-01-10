@@ -186,8 +186,8 @@ static int writeTrack(uint8_t *zcfile, size_t zcfilelen, size_t *wpos,
     return 0;
 }
 
-size_t zc45_write(uint8_t *zcfile, size_t zcfilelen, int zcfileno,
-        const D64 *d64)
+SOEXPORT size_t zc45_write(
+	uint8_t *zcfile, size_t zcfilelen, int zcfileno, const D64 *d64)
 {
     if (zcfileno < 1 || zcfileno > 5)
     {

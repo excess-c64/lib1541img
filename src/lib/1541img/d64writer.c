@@ -5,7 +5,7 @@
 
 #include <1541img/d64writer.h>
 
-int writeD64(FILE *file, const D64 *d64)
+SOEXPORT int writeD64(FILE *file, const D64 *d64)
 {
     for (uint8_t tracknum = 1; tracknum <= D64_tracks(d64); ++tracknum)
     {

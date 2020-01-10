@@ -1,15 +1,14 @@
 #ifndef I1541_ZC45COMPRESSOR_H
 #define I1541_ZC45COMPRESSOR_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Contains a function for compressing a D64 disc image to zipcode
  * @file
  */
 
-typedef struct D64 D64;
-typedef struct ZcFileSet ZcFileSet;
+#include <1541img/decl.h>
+
+C_CLASS_DECL(D64);
+C_CLASS_DECL(ZcFileSet);
 
 /** Compress a D64 disc image to zipcode.
  * @relatesalso ZcFileSet
@@ -21,9 +20,6 @@ typedef struct ZcFileSet ZcFileSet;
  * @param d64 the disc image to compress
  * @returns the zipcode file set, or NULL on error
  */
-ZcFileSet *compressZc45(const D64 *d64);
+DECLEXPORT ZcFileSet *compressZc45(const D64 *d64);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

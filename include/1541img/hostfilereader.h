@@ -1,8 +1,5 @@
 #ifndef I1541_HOSTFILEREADER_H
 #define I1541_HOSTFILEREADER_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Contains a function to read FileData from a (host) file
  * @file
@@ -10,7 +7,9 @@ extern "C" {
 
 #include <stdio.h>
 
-typedef struct FileData FileData;
+#include <1541img/decl.h>
+
+C_CLASS_DECL(FileData);
 
 /** Read FileData from a (host) file.
  * @relatesalso FileData
@@ -20,9 +19,6 @@ typedef struct FileData FileData;
  * @param file a file opened for reading to read the FileData from
  * @returns a new FileData instance, or NULL on error
  */
-FileData *readHostFile(FILE *file);
+DECLEXPORT FileData *readHostFile(FILE *file);
 
-#ifdef __cplusplus
-}
-#endif
 #endif
