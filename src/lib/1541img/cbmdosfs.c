@@ -807,7 +807,7 @@ SOEXPORT void CbmdosFs_getFreeBlocksLine(const CbmdosFs *self, uint8_t *line)
     int free = (rawFree == 0xffff) ? -1 : rawFree;
     if (free > 0 && (self->options.flags & CFF_ZEROFREE)) free = 0;
     char freestr[4];
-    snprintf(freestr, 4, "%d", free);
+    snprintf(freestr, sizeof freestr, "%d", free);
     memset(line, 0xa0, 16);
     const char *blocksfree = " BLOCKS FREE.";
     uint8_t *w = line;

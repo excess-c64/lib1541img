@@ -79,28 +79,12 @@ static int parsePetsciiNum(uint16_t *num, size_t *pos,
     return 0;
 }
 
-static int findHeader(size_t *sigpos, uint8_t *dirblocks, size_t *dirpos,
+static int findLynxHeader(size_t *sigpos, uint8_t *dirblocks, size_t *dirpos,
 	const uint8_t *content, size_t size)
 {
-    if (size < 255) return -1;
-    size_t base = content[0] | (content[1] << 8);
-    size_t next = content[2] | (content[3] << 8);
-    if (next <= base) return -1;
-    size_t pos = next - base + 2;
-    if (pos > size - 5) return -1;
-    if (content[pos-1]) return -1;
-    while (content[pos] || content[pos+1])
-    {
-	size_t nextline = content[pos] | (content[pos+1] << 8);
-	if (nextline <= next) return -1;
-	next = nextline;
-	pos = next - base + 2;
-	if (pos > size - 5) return -1;
-	if (content[pos-1]) return -1;
-    }
-    pos += 2;
-    if (content[pos++] != 0x0d) return -1;
+    size_t pos = *sigpos;
     while (pos < size && content[pos] == 0x20) ++pos;
+    if (pos == size) return -1;
     if (content[pos] < 0x31 || content[pos] > 0x39) return -1;
     uint8_t blocks = content[pos] - 0x30;
     if (++pos == size) return -1;
@@ -122,6 +106,42 @@ static int findHeader(size_t *sigpos, uint8_t *dirblocks, size_t *dirpos,
     *sigpos = sigp;
     *dirblocks = blocks;
     *dirpos = pos;
+    return 0;
+}
+
+static int findHeader(size_t *sigpos, uint8_t *dirblocks, size_t *dirpos,
+	const uint8_t *content, size_t size)
+{
+    size_t pos = 0;
+    if (size < 255) return -1;
+    size_t base = content[0] | (content[1] << 8);
+    size_t next = content[2] | (content[3] << 8);
+    if (next <= base) goto lynxhdr;
+    pos = next - base + 2;
+    if (pos > size - 5)
+    {
+	pos = 0;
+	goto lynxhdr;
+    }
+    if (content[pos-1])
+    {
+	pos = 0;
+	goto lynxhdr;
+    }
+    while (content[pos] || content[pos+1])
+    {
+	size_t nextline = content[pos] | (content[pos+1] << 8);
+	if (nextline <= next) return -1;
+	next = nextline;
+	pos = next - base + 2;
+	if (pos > size - 5) return -1;
+	if (content[pos-1]) return -1;
+    }
+    pos += 2;
+    if (content[pos++] != 0x0d) return -1;
+lynxhdr:
+    if (findLynxHeader(&pos, dirblocks, dirpos, content, size) < 0) return -1;
+    *sigpos = pos;
     return 0;
 }
 
@@ -229,11 +249,23 @@ SOEXPORT int extractLynx(CbmdosVfs *vfs, const FileData *file)
 	uint16_t lsu;
 	if (parsePetsciiNum(&lsu, &pos, content, size) < 0)
 	{
-	    logmsg(L_ERROR,
-		    "extractLynx: error parsing last block usage of file.");
-	    goto done;
+	    if (i == numfiles - 1)
+	    {
+		logmsg(L_INFO, "extractLynx: last block usage of last file "
+			"missing, assuming size from the container.");
+		dir[i].size = 0;
+	    }
+	    else
+	    {
+		logmsg(L_ERROR, "extractLynx: error parsing last block usage "
+			"of file.");
+		goto done;
+	    }
 	}
-	dir[i].size = 254 * (dir[i].blocks - 1) + (lsu - 1);
+	else
+	{
+	    dir[i].size = 254 * (dir[i].blocks - 1) + (lsu - 1);
+	}
     }
 
     for (int i = 0; i < numfiles; ++i)
@@ -259,6 +291,21 @@ SOEXPORT int extractLynx(CbmdosVfs *vfs, const FileData *file)
 	    {
 		logmsg(L_ERROR, "extractLynx: unexpected end of file.");
 		goto done;
+	    }
+	}
+	if (i == numfiles - 1 && !dir[i].size)
+	{
+	    dir[i].size = size - pos;
+	    if (dir[i].size < (dir[i].blocks-1U) * 254)
+	    {
+		logmsg(L_ERROR, "extractLynx: unexpected end of file.");
+		goto done;
+	    }
+	    if (dir[i].size > dir[i].blocks * 254)
+	    {
+		logmsg(L_WARNING, "extractLynx: unexpected garbage after end "
+			"of file, archive might be corrupt.");
+		dir[i].size = dir[i].blocks * 254;
 	    }
 	}
 	if (pos + dir[i].size > size)
