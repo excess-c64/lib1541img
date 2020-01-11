@@ -92,6 +92,7 @@ static void updateBam(CbmdosFs *self)
     memcpy(bam+0x90+nameoffset, name, length);
     const char *id = CbmdosVfs_id(self->vfs, &length);
     memcpy(bam+0xa2+nameoffset, id, length);
+    self->status &= ~CFS_INVALIDBAM;
 }
 
 static void deleteChain(CbmdosFs *self, uint8_t nexttrack, uint8_t nextsect)
@@ -241,6 +242,7 @@ static int updateDir(CbmdosFs *self)
         dirent[0x1f] = self->dir.entries[i].blocks >> 8;
 	++dirpos;
     }
+    self->status &= ~CFS_DIRFULL;
     return 0;
 
 fail:
@@ -477,6 +479,17 @@ static void vfsChanged(void *receiver, int id, const void *sender,
 			(self->dir.size - ea->filepos)
 			* sizeof *self->dir.entries);
 	    }
+	    if (self->status & CFS_DISKFULL)
+	    {
+		self->status &= ~CFS_DISKFULL;
+		for (unsigned pos = 0; pos < self->dir.size; ++pos)
+		{
+		    if (updateFile(self, pos) < 0)
+		    {
+			self->status |= CFS_DISKFULL;
+		    }
+		}
+	    }
 	    updateDir(self);
 	    updateBam(self);
 	    break;
@@ -521,6 +534,17 @@ static void vfsChanged(void *receiver, int id, const void *sender,
 		if (updateFile(self, ea->filepos) < 0)
 		{
 		    self->status |= CFS_DISKFULL;
+		}
+		if (self->status & CFS_DISKFULL)
+		{
+		    self->status &= ~CFS_DISKFULL;
+		    for (unsigned pos = 0; pos < self->dir.size; ++pos)
+		    {
+			if (updateFile(self, pos) < 0)
+			{
+			    self->status |= CFS_DISKFULL;
+			}
+		    }
 		}
 	    }
 	    updateDir(self);
