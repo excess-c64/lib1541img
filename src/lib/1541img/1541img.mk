@@ -15,5 +15,7 @@ endif
 1541img_V_MAJ:= 0
 1541img_V_MIN:= 9
 1541img_V_REV:= 0
+1541img_DOCS= README.md LICENSE.txt \
+	$(wildcard html/search/*) $(filter-out html/search,$(wildcard html/*))
 $(call librules, 1541img)
 

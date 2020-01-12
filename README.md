@@ -84,9 +84,11 @@ FreeBSD), install a GNU make package and use the command `gmake` instead of
 To build html documentation, you will need *Doxygen* installed on your system.
 Then use
 
-    make docs
+    make html
 
-This will create a full html documentation of the library's API in `doc/html`.
+This will create a full html documentation of the library's API.
+The html documentation is also installed with `make install` if it has been
+built before.
 
 ## Static linking
 

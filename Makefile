@@ -1,4 +1,4 @@
-NOBUILDTARGETS=docs
+NOBUILDTARGETS=html
 
 include zimk/zimk.mk
 
@@ -6,11 +6,13 @@ INCLUDES += -I.$(PSEP)include
 
 $(call zinc, src/lib/1541img/1541img.mk)
 
-docs:
+html:
 	doxygen Doxyfile
 
 clean::
-	rm -fr doc
+	rm -fr html
 
-.PHONY: docs
+distclean::
+	rm -fr html
 
+.PHONY: html
