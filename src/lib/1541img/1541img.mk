@@ -1,7 +1,7 @@
 1541img_MODULES:= util log sector track d64 zc45reader filedata \
 	hostfilereader hostfilewriter d64writer filename zcfileset \
 	zc45extractor cbmdosfile cbmdosvfs cbmdosvfsreader d64reader \
-	zc45writer zc45compressor event cbmdosfs lynx
+	zc45writer zc45compressor event cbmdosfs lynx petscii
 ifeq ($(PLATFORM),win32)
 1541img_MODULES+= winfopen
 endif

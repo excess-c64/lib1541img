@@ -5,6 +5,7 @@
 #include "log.h"
 #include <1541img/event.h>
 #include <1541img/cbmdosfile.h>
+#include <1541img/petscii.h>
 
 #include <1541img/cbmdosvfs.h>
 
@@ -14,6 +15,7 @@ struct CbmdosVfs
 {
     char *name;
     char *id;
+    int autoMapToLc;
     CbmdosFile **files;
     Event *changedEvent;
     unsigned fileCount;
@@ -100,6 +102,10 @@ SOEXPORT void CbmdosVfs_setName(
         }
     }
     self->nameLength = length;
+    if (self->autoMapToLc)
+    {
+	petscii_mapUpperGfxToLower(self->name, self->nameLength);
+    }
     CbmdosVfsEventArgs args = { .what = CVE_NAMECHANGED };
     Event_raise(self->changedEvent, &args);
 }
@@ -138,7 +144,28 @@ SOEXPORT void CbmdosVfs_setId(CbmdosVfs *self, const char *id, uint8_t length)
         }
     }
     self->idLength = length;
+    if (self->autoMapToLc)
+    {
+	petscii_mapUpperGfxToLower(self->id, self->idLength);
+    }
     CbmdosVfsEventArgs args = { .what = CVE_IDCHANGED };
+    Event_raise(self->changedEvent, &args);
+}
+
+SOEXPORT void CbmdosVfs_mapUpperGfxToLower(CbmdosVfs *self, int mapFiles)
+{
+    if (mapFiles)
+    {
+	for (unsigned i = 0; i < self->fileCount; ++i)
+	{
+	    CbmdosFile_mapUpperGfxToLower(self->files[i]);
+	}
+    }
+    petscii_mapUpperGfxToLower(self->name, self->nameLength);
+    CbmdosVfsEventArgs args = { .what = CVE_NAMECHANGED };
+    Event_raise(self->changedEvent, &args);
+    petscii_mapUpperGfxToLower(self->id, self->idLength);
+    args.what = CVE_IDCHANGED;
     Event_raise(self->changedEvent, &args);
 }
 
@@ -282,6 +309,24 @@ SOEXPORT void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line)
     line[23] = self->dosver;
     memcpy(line+1, self->name, self->nameLength);
     memcpy(line+19, self->id, self->idLength);
+}
+
+SOEXPORT int CbmdosVfs_autoMapToLc(const CbmdosVfs *self)
+{
+    return self->autoMapToLc;
+}
+
+SOEXPORT void CbmdosVfs_setAutoMapToLc(
+	CbmdosVfs *self, int autoMapToLc, int applyToFiles)
+{
+    if (applyToFiles)
+    {
+	for (unsigned i = 0; i < self->fileCount; ++i)
+	{
+	    CbmdosFile_setAutoMapToLc(self->files[i], autoMapToLc);
+	}
+    }
+    self->autoMapToLc = !!autoMapToLc;
 }
 
 SOEXPORT Event *CbmdosVfs_changedEvent(CbmdosVfs *self)

@@ -79,6 +79,14 @@ DECLEXPORT const char *CbmdosFile_name(
 DECLEXPORT void CbmdosFile_setName(
 	CbmdosFile *self, const char *name, uint8_t length);
 
+/** Map uppercase graphics chars in filename to lowercase chars
+ * This changes the filename, so Uppercase/Gfx chars are replaced by chars
+ * that also work in lowercase mode, see PETSCII module.
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ */
+DECLEXPORT void CbmdosFile_mapUpperGfxToLower(CbmdosFile *self);
+
 /** The read-only contents of the file
  * @memberof CbmdosFile
  * @param self the cbmdos file
@@ -209,6 +217,24 @@ DECLEXPORT int CbmdosFile_closed(const CbmdosFile *self);
  * @param closed 1 sets file closed, 0 unclosed (default is 1)
  */
 DECLEXPORT void CbmdosFile_setClosed(CbmdosFile *self, int closed);
+
+/** AutoMapToLc flag of the file
+ * The flag controls whether a filename set is automatically mapped with
+ * petscii_mapUpperGfxToLower(), see PETSCII module.
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @returns the AutoMapToLc flag
+ */
+DECLEXPORT int CbmdosFile_autoMapToLc(const CbmdosFile *self);
+
+/** Set AutoMapToLc flag of the file
+ * The flag controls whether a filename set is automatically mapped with
+ * petscii_mapUpperGfxToLower(), see PETSCII module.
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @param autoMapToLc the AutoMapToLc flag (default is 0)
+ */
+DECLEXPORT void CbmdosFile_setAutoMapToLc(CbmdosFile *self, int autoMapToLc);
 
 /** Get a directory entry line.
  * Gets a line as displayed in a directory on the C64, in PETSCII encoding

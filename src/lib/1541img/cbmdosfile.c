@@ -7,6 +7,7 @@
 #include <1541img/filedata.h>
 #include <1541img/hostfilereader.h>
 #include <1541img/hostfilewriter.h>
+#include <1541img/petscii.h>
 
 #include <1541img/cbmdosfile.h>
 
@@ -30,6 +31,7 @@ struct CbmdosFile
     CbmdosFileType type;
     int locked;
     int closed;
+    int autoMapToLc;
     char *name;
     FileData *data;
     Event *changedEvent;
@@ -122,6 +124,17 @@ SOEXPORT void CbmdosFile_setName(
         }
     }
     self->nameLength = length;
+    if (self->autoMapToLc)
+    {
+	petscii_mapUpperGfxToLower(self->name, self->nameLength);
+    }
+    CbmdosFileEventArgs args = { CFE_NAMECHANGED };
+    Event_raise(self->changedEvent, &args);
+}
+
+SOEXPORT void CbmdosFile_mapUpperGfxToLower(CbmdosFile *self)
+{
+    petscii_mapUpperGfxToLower(self->name, self->nameLength);
     CbmdosFileEventArgs args = { CFE_NAMECHANGED };
     Event_raise(self->changedEvent, &args);
 }
@@ -253,7 +266,7 @@ SOEXPORT int CbmdosFile_locked(const CbmdosFile *self)
 
 SOEXPORT void CbmdosFile_setLocked(CbmdosFile *self, int locked)
 {
-    self->locked = locked;
+    self->locked = !!locked;
     CbmdosFileEventArgs args = { CFE_LOCKEDCHANGED };
     Event_raise(self->changedEvent, &args);
 }
@@ -265,9 +278,19 @@ SOEXPORT int CbmdosFile_closed(const CbmdosFile *self)
 
 SOEXPORT void CbmdosFile_setClosed(CbmdosFile *self, int closed)
 {
-    self->closed = closed;
+    self->closed = !!closed;
     CbmdosFileEventArgs args = { CFE_CLOSEDCHANGED };
     Event_raise(self->changedEvent, &args);
+}
+
+SOEXPORT int CbmdosFile_autoMapToLc(const CbmdosFile *self)
+{
+    return self->autoMapToLc;
+}
+
+SOEXPORT void CbmdosFile_setAutoMapToLc(CbmdosFile *self, int autoMapToLc)
+{
+    self->autoMapToLc = !!autoMapToLc;
 }
 
 SOEXPORT void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line)
