@@ -63,7 +63,15 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 	if (bam[0xa5+nameoffset] == 0x32)
 	{
 	    --idlen;
-	    if (bam[0xa4+nameoffset] == 0xa0) --idlen;
+	    if (bam[0xa4+nameoffset] == 0xa0)
+            {
+                --idlen;
+                if (bam[0xa3+nameoffset] == 0xa0)
+                {
+                    --idlen;
+                    if (bam[0xa2+nameoffset] == 0xa0) --idlen;
+                }
+            }
 	}
     }
     CbmdosVfs_setId(vfs, (const char *)bam+0xa2+nameoffset, idlen);
