@@ -90,6 +90,61 @@ This will create a full html documentation of the library's API.
 The html documentation is also installed with `make install` if it has been
 built before.
 
+## General usage
+
+*lib1541img* uses an object-oriented design. Methods of a class are prefixed
+with the class name, for example `FileData_appendByte()` will append a single
+byte to a `FileData` object.
+
+The handle to an object is a pointer to it, as returned by a "constructor"
+function. The default constructor for a class is called "create", e.g.
+`D64_create()` is used for creating a new `D64` object. All other methods will
+require you to pass the object pointer as the first argument. Every class
+also has a "destructor" function called "destroy", for example 
+`D64_destroy()`, which you must call to release memory used by the object.
+
+Some methods take pointers to *other* objects. The object may or may not take
+ownership of the other object, here's how you can know:
+
+* If the parameter for the other object is declared as a `const` pointer,
+  ownership is not taken over, so you still have to destroy the other object
+  yourself.
+
+  Example: `CbmdosFile_setName()` will set a file name from a `const char *`
+  pointer to a string you provide, but you will still own the original string
+  afterwards.
+
+* If the parameter for the other object is declared as a non-`const` pointer,
+  ownership *is* taken over, so you must not destroy the other object
+  yourself.
+
+  Example: `CbmdosFs_fromImage()` will create a new `CbmdosFs` from an
+  existing `D64` image and take ownership of that image.
+
+* The exception to this rule is a method that writes data *to*
+  another object. In this case, the `self` pointer (the first parameter) will
+  be `const`. Such a method won't take ownership of the other object.
+
+  Example: `ZcFileSet_saveVfs()` will store the files of a Zipcode file set
+  into an existing `CbmdosVfs`.
+
+## Threading
+
+*lib1541im* doesn't use threads, but can be used in a threaded program if some
+care is taken:
+
+* Events work simply by direct calls, `CbmdosVfs` subscribes Events from each
+  `CbmdosFile` and `CbmdosFs` subscribes events from `CbmdosVfs`. So, if you
+  use a `CbmdosFs` in one thread, make sure you use the attached `CbmdosVfs`
+  and its files only in the same thread.
+* A *logwriter* is set globally and will be shared by all threads. The default
+  implementation does nothing, so it's inherently thread-safe.
+  `setFileLogger()` sets a logwriter that appends to an opened file handle,
+  which *should* be thread-safe on most platforms. If you provide your own
+  logwriter with `setCustomLogger()` and use *lib1541img* functions from
+  different threads, it's your responsibility to make your logwriter
+  thread-safe.
+
 ## Static linking
 
 If you want to link *lib1541img* statically to your program, make sure the
@@ -102,23 +157,6 @@ static library, use these commands:
 
     make -j4 staticlibs
     make installstaticlibs
-
-## Threading
-
-*lib1541im* doesn't use threads, but can be used in a threaded program if some
-care is taken:
-
-* Events work simply by direct calls, *CbmdosVfs* subscribes Events from each
-  *CbmdosFile* and *CbmdosFs* subscribes events from *CbmdosVfs*. So, if you
-  use a *CbmdosFs* in one thread, make sure you use the attached *CbmdosVfs*
-  and its files only in the same thread.
-* A *logwriter* is set globally and will be shared by all threads. The default
-  implementation does nothing, so it's inherently thread-safe.
-  *setFileLogger()* sets a logwriter that appends to an opened file handle,
-  which *should* be thread-safe on most platforms. If you provide your own
-  logwriter with *setCustomLogger()* and use *lib1541img* functions from
-  different threads, it's your responsibility to make your logwriter
-  thread-safe.
 
 ## Example
 
