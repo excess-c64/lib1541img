@@ -103,6 +103,22 @@ static library, use these commands:
     make -j4 staticlibs
     make installstaticlibs
 
+## Threading
+
+*lib1541im* doesn't use threads, but can be used in a threaded program if some
+care is taken:
+
+* Events work simply by direct calls, *CbmdosVfs* subscribes Events from each
+  *CbmdosFile* and *CbmdosFs* subscribes events from *CbmdosVfs*. So, if you
+  use a *CbmdosFs* in one thread, make sure you use the attached *CbmdosVfs*
+  and its files only in the same thread.
+* A *logwriter* is set globally and will be shared by all threads. The default
+  implementation does nothing, so it's inherently thread-safe.
+  *setFileLogger()* sets a logwriter that appends to an opened file handle,
+  which *should* be thread-safe on most platforms. If you provide your own
+  logwriter with *setCustomLogger()* and use *lib1541img* functions from
+  different threads, it's your responsibility to make your logwriter
+  thread-safe.
 
 ## Example
 
