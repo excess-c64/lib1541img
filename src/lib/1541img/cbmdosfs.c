@@ -92,7 +92,6 @@ static void updateBam(CbmdosFs *self)
     memcpy(bam+0x90+nameoffset, name, length);
     const char *id = CbmdosVfs_id(self->vfs, &length);
     memcpy(bam+0xa2+nameoffset, id, length);
-    self->status &= ~CFS_INVALIDBAM;
 }
 
 static void deleteChain(CbmdosFs *self, uint8_t nexttrack, uint8_t nextsect)
