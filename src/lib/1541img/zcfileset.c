@@ -51,7 +51,8 @@ SOEXPORT ZcFileSet *ZcFileSet_create(ZcType type, const char *name)
     return self;
 }
 
-static ZcFileSet *fromFileData(const char *name, FileData **files)
+static ZcFileSet *fromFileData(
+        const char *name, FileData **files, int logerrors)
 {
     ZcFileSet *self = 0;
 
@@ -79,8 +80,11 @@ static ZcFileSet *fromFileData(const char *name, FileData **files)
     }
     else
     {
-        logmsg(L_ERROR, "ZcFileSet: reading failed (missing or "
-                "unreadable files).");
+        if (logerrors)
+        {
+            logmsg(L_ERROR, "ZcFileSet: reading failed (missing or "
+                    "unreadable files).");
+        }
         for (int i = 0; i < 5; ++i) FileData_destroy(files[i]);
     }
 
@@ -109,7 +113,7 @@ static ZcFileSet *fromD64(const char *filename)
     return self;
 }
 
-SOEXPORT ZcFileSet *ZcFileSet_fromVfs(const CbmdosVfs *vfs)
+static ZcFileSet *fromVfsInternal(const CbmdosVfs *vfs, int logerrors)
 {
     logfmt(L_INFO, "ZcFileSet: checking disk `%s,%s'", CbmdosVfs_name(vfs, 0),
             CbmdosVfs_id(vfs, 0));
@@ -133,7 +137,8 @@ SOEXPORT ZcFileSet *ZcFileSet_fromVfs(const CbmdosVfs *vfs)
         int partidx = name[0] - '1';
         if (files[partidx])
         {
-            logfmt(L_WARNING, "ZcFileSet: skipping duplicate `%s.PRG'", name);
+            logfmt(logerrors ? L_WARNING : L_INFO,
+                    "ZcFileSet: skipping duplicate `%s.PRG'", name);
             continue;
         }
         files[partidx] = FileData_clone(CbmdosFile_rdata(dosfile));
@@ -141,10 +146,20 @@ SOEXPORT ZcFileSet *ZcFileSet_fromVfs(const CbmdosVfs *vfs)
                 (unsigned long)FileData_size(files[partidx]));
     }
 
-    return fromFileData(compare, files);
+    return fromFileData(compare, files, logerrors);
 }
 
-SOEXPORT ZcFileSet *ZcFileSet_fromFileData(const FileData *file)
+SOEXPORT ZcFileSet *ZcFileSet_fromVfs(const CbmdosVfs *vfs)
+{
+    return fromVfsInternal(vfs, 1);
+}
+
+SOEXPORT ZcFileSet *ZcFileSet_tryFromVfs(const CbmdosVfs *vfs)
+{
+    return fromVfsInternal(vfs, 0);
+}
+
+static ZcFileSet *fromFileDataInternal(const FileData *file, int logerrors)
 {
     D64 *d64 = readD64FromFileData(file);
     if (!d64) return 0;
@@ -156,9 +171,19 @@ SOEXPORT ZcFileSet *ZcFileSet_fromFileData(const FileData *file)
         CbmdosVfs_destroy(vfs);
         return 0;
     }
-    ZcFileSet *self = ZcFileSet_fromVfs(vfs);
+    ZcFileSet *self = fromVfsInternal(vfs, logerrors);
     CbmdosVfs_destroy(vfs);
     return self;
+}
+
+SOEXPORT ZcFileSet *ZcFileSet_fromFileData(const FileData *file)
+{
+    return fromFileDataInternal(file, 1);
+}
+
+SOEXPORT ZcFileSet *ZcFileSet_tryFromFileData(const FileData *file)
+{
+    return fromFileDataInternal(file, 0);
 }
 
 SOEXPORT ZcFileSet *ZcFileSet_fromFile(const char *filename)
@@ -190,7 +215,7 @@ SOEXPORT ZcFileSet *ZcFileSet_fromFile(const char *filename)
 		    fclose(p);
 		}
 	    }
-	    self = fromFileData(base+2, files);
+	    self = fromFileData(base+2, files, 1);
 	}
         else
         {

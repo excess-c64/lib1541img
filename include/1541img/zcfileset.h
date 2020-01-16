@@ -45,6 +45,16 @@ DECLEXPORT ZcFileSet *ZcFileSet_create(ZcType type, const char *name);
  */
 DECLEXPORT ZcFileSet *ZcFileSet_fromVfs(const CbmdosVfs *vfs);
 
+/** Try to create a ZcFileSet from a Cbmdos vfs.
+ * This does exactly the same as ZcFileSet_fromVfs(), but won't log any error
+ * messages. Use this if you don't know whether your VFS should contain
+ * zipcode files or not.
+ * @memberof ZcFileSet
+ * @param vfs the Cbmdos vfs to search for zipcode files.
+ * @returns a ZcFileSet containing the zipcode files, or NULL on error
+ */
+DECLEXPORT ZcFileSet *ZcFileSet_tryFromVfs(const CbmdosVfs *vfs);
+
 /** Create a ZcFileSet from a FileData instance.
  * This creates a ZcFileSet from a FileData instance containing a D64 image,
  * which must contain all the zipcode files.
@@ -53,6 +63,16 @@ DECLEXPORT ZcFileSet *ZcFileSet_fromVfs(const CbmdosVfs *vfs);
  * @returns a ZcFileSet containing the zipcode files, or NULL on error
  */
 DECLEXPORT ZcFileSet *ZcFileSet_fromFileData(const FileData *file);
+
+/** Try to create a ZcFileSet from a FileData instance.
+ * This does exactly the same as ZcFileSet_fromFileData(), but won't log any
+ * error messages. Use this if you don't know whether your File should contain
+ * a D64 image with zipcode files or not.
+ * @memberof ZcFileSet
+ * @param file the FileData instance containing a D64 image
+ * @returns a ZcFileSet containing the zipcode files, or NULL on error
+ */
+DECLEXPORT ZcFileSet *ZcFileSet_tryFromFileData(const FileData *file);
 
 /** Create a ZcFileSet from a host file.
  * This creates a ZcFileSet from either a D64 disc image which must contain
