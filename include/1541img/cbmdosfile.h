@@ -87,7 +87,7 @@ DECLEXPORT const char *CbmdosFile_name(
 DECLEXPORT void CbmdosFile_setName(
 	CbmdosFile *self, const char *name, uint8_t length);
 
-/** Map uppercase graphics chars in filename to lowercase chars
+/** Map uppercase graphics chars in filename to lowercase chars.
  * This changes the filename, so Uppercase/Gfx chars are replaced by chars
  * that also work in lowercase mode, see PETSCII module.
  * @memberof CbmdosFile
@@ -226,7 +226,7 @@ DECLEXPORT int CbmdosFile_closed(const CbmdosFile *self);
  */
 DECLEXPORT void CbmdosFile_setClosed(CbmdosFile *self, int closed);
 
-/** AutoMapToLc flag of the file
+/** AutoMapToLc flag of the file.
  * The flag controls whether a filename set is automatically mapped with
  * petscii_mapUpperGfxToLower(), see PETSCII module.
  * @memberof CbmdosFile
@@ -235,7 +235,7 @@ DECLEXPORT void CbmdosFile_setClosed(CbmdosFile *self, int closed);
  */
 DECLEXPORT int CbmdosFile_autoMapToLc(const CbmdosFile *self);
 
-/** Set AutoMapToLc flag of the file
+/** Set AutoMapToLc flag of the file.
  * The flag controls whether a filename set is automatically mapped with
  * petscii_mapUpperGfxToLower(), see PETSCII module.
  * @memberof CbmdosFile

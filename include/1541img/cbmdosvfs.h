@@ -89,7 +89,7 @@ DECLEXPORT const char *CbmdosVfs_id(const CbmdosVfs *self, uint8_t *length);
 DECLEXPORT void CbmdosVfs_setId(
 	CbmdosVfs *self, const char *id, uint8_t length);
 
-/** Map uppercase graphics chars in disk name and id to lowercase chars
+/** Map uppercase graphics chars in disk name and id to lowercase chars.
  * This changes the disk name and id, so Uppercase/Gfx chars are replaced by
  * chars that also work in lowercase mode, see PETSCII module.
  * @memberof CbmdosVfs
@@ -180,7 +180,7 @@ DECLEXPORT int CbmdosVfs_move(CbmdosVfs *self, unsigned to, unsigned from);
  */
 DECLEXPORT void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line);
 
-/** AutoMapToLc flag of the vfs
+/** AutoMapToLc flag of the vfs.
  * The flag controls whether disk name and id are automatically mapped with
  * petscii_mapUpperGfxToLower() when set, see PETSCII module.
  * @memberof CbmdosVfs
@@ -189,10 +189,10 @@ DECLEXPORT void CbmdosVfs_getDirHeader(const CbmdosVfs *self, uint8_t *line);
  */
 DECLEXPORT int CbmdosVfs_autoMapToLc(const CbmdosVfs *self);
 
-/** Set AutoMapToLc flag of the file
+/** Set AutoMapToLc flag of the file.
  * The flag controls whether disk name and id are automatically mapped with
  * petscii_mapUpperGfxToLower() when set, see PETSCII module.
- * @memberof CbmdosFile
+ * @memberof CbmdosVfs
  * @param self the cbmdos vfs
  * @param autoMapToLc the AutoMapToLc flag (default is 0)
  * @param applyToFiles whether the flag is changed on all the files as well

@@ -34,7 +34,7 @@ typedef enum LogLevel
     L_DEBUG     /**< a debugging message, very verbose */
 } LogLevel;
 
-/** Delegate for writing log messages from the library
+/** Delegate for writing log messages from the library.
  * @param level the log level of the message
  * @param message the actual message
  * @param data some additional data you might need internally
@@ -52,13 +52,13 @@ typedef void (*logwriter)(LogLevel level, const char *message, void *data);
  */
 DECLEXPORT void setFileLogger(FILE *file);
 
-/** Setup logging using your own function
+/** Setup logging using your own function.
  * @param writer your log writing function
  * @param data some additional data to pass to your writing function
  */
 DECLEXPORT void setCustomLogger(logwriter writer, void *data);
 
-/** Configure the maximum log level
+/** Configure the maximum log level.
  * lib1541img will suppress any messages less severe than the level given
  * here. By default, DEBUG messages will be suppressed.
  * @param level the maximum level to generate messages for

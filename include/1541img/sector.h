@@ -23,7 +23,7 @@ C_CLASS_DECL(Sector);
  */
 DECLEXPORT Sector *Sector_create(void);
 
-/** Sector constructor at given position
+/** Sector constructor at given position.
  * Creates a new Sector with a given track and sector number
  * @memberof Sector
  * @param tracknum the track number (starting at 1)

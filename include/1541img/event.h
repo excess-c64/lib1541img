@@ -33,7 +33,7 @@ C_CLASS_DECL(Event);
  */
 DECLEXPORT Event *Event_create(int id, const void *sender);
 
-/** Register a handler to an event
+/** Register a handler to an event.
  * This must be called to subscribe to an event.
  * @memberof Event
  * @param self the Event
@@ -44,7 +44,7 @@ DECLEXPORT Event *Event_create(int id, const void *sender);
 DECLEXPORT void Event_register(
 	Event *self, void *receiver, EventHandler handler);
 
-/** Unregister a handler from an event
+/** Unregister a handler from an event.
  * Call this to no longer receive raised events by a handler on a given
  * receiver instance.
  * @memberof Event
@@ -56,7 +56,7 @@ DECLEXPORT void Event_register(
 DECLEXPORT void Event_unregister(
 	Event *self, void *receiver, EventHandler handler);
 
-/** Raise an event
+/** Raise an event.
  * Call this to notify all registered handlers about an event.
  * @memberof Event
  * @param self the Event

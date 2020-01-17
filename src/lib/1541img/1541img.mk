@@ -12,8 +12,8 @@ endif
 	zc45writer zcfileset
 1541img_HEADERDIR:= include$(PSEP)1541img
 1541img_DEFINES:= -DBUILDING_1541IMG
-1541img_V_MAJ:= 0
-1541img_V_MIN:= 9
+1541img_V_MAJ:= 1
+1541img_V_MIN:= 0
 1541img_V_REV:= 0
 1541img_DOCS= README.md LICENSE.txt \
 	$(wildcard html/search/*) $(filter-out html/search,$(wildcard html/*))

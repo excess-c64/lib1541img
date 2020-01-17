@@ -34,8 +34,11 @@ DECLEXPORT int readCbmdosVfs(
  * This functions tries to find a cbmdos filesystem on the given disc image
  * and determine the correct CbmdosFsOptions for reading it. The result is
  * just a "best guess", but it should normally work for reading from the
- * image.
- * @param options a pointer to the options to fill
+ * image. If the filesystem on the disc image is broken/inconsistent, this
+ * function will fail unless the CFF_RECOVER flag in the options passed is
+ * already set.
+ * @param options a pointer to the options to probe. This *must* be properly
+ *     initialized, because it is checked for the CFF_RECOVER flag.
  * @param d64 the D64 disc image to read from
  * @returns 0 on success, -1 on error
  */
