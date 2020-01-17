@@ -140,13 +140,21 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
             if (direntry[2])
             {
                 CbmdosFileType type = direntry[2] & 0xf;
+		int typeInvalid = 0;
                 int locked = !!(direntry[2] & (1<<6));
                 int closed = !!(direntry[2] & (1<<7));
                 CbmdosFile *file = CbmdosFile_create();
                 if (CbmdosFile_setType(file, type) < 0)
                 {
-                    CbmdosFile_destroy(file);
-                    continue;
+		    if (options->flags & CFF_RECOVER)
+		    {
+			typeInvalid = 1;
+		    }
+		    else
+		    {
+			CbmdosFile_destroy(file);
+			continue;
+		    }
                 }
                 CbmdosFile_setLocked(file, locked);
                 CbmdosFile_setClosed(file, closed);
@@ -163,7 +171,8 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
                     --filenamelen;
                 CbmdosFile_setName(file, (const char *)direntry+5, filenamelen);
                 logfmt(L_DEBUG, "readCbmdosVfs: found file \"%s\" %s",
-                        CbmdosFile_name(file, 0), CbmdosFileType_name(type));
+                        CbmdosFile_name(file, 0),
+			CbmdosFileType_name(CbmdosFile_type(file)));
 
 		uint16_t blocks = (direntry[0x1f] << 8) | direntry[0x1e];
 		if (dirdata)
@@ -174,7 +183,7 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 			dirdata->entries = xrealloc(dirdata->entries,
 				dirdata->capa * sizeof *dirdata->entries);
 		    }
-                    if (type == CFT_DEL)
+                    if (!typeInvalid && type == CFT_DEL)
                     {
 		        dirdata->entries[dirdata->size].starttrack = 0;
 		        dirdata->entries[dirdata->size].startsector = 0;
@@ -202,7 +211,7 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 		    ++dirdata->size;
 		}
 
-		if (type != CFT_DEL)
+		if (typeInvalid || type != CFT_DEL)
 		{
 		    FileData *data = CbmdosFile_data(file);
 		    uint8_t track = direntry[3];
@@ -214,9 +223,9 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 			{
 			    logfmt(L_ERROR, "readCbmdosVfs: invalid track "
 				    "%d found.", track);
+			    if (options->flags & CFF_RECOVER) goto nextfile;
 			    CbmdosFile_destroy(file);
 			    file = 0;
-			    if (options->flags & CFF_RECOVER) goto nextfile;
 			    dirsect = 0;
 			    rc = -1;
 			    break;
@@ -226,12 +235,14 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 			{
 			    logmsg(L_ERROR, "readCbmdosVfs: unexpectedly "
 				    "found file on directory track.");
-			    CbmdosFile_destroy(file);
-			    file = 0;
-			    if (options->flags & CFF_RECOVER) goto nextfile;
-			    dirsect = 0;
-			    rc = -1;
-			    break;
+			    if (!(options->flags & CFF_RECOVER))
+			    {
+				CbmdosFile_destroy(file);
+				file = 0;
+				dirsect = 0;
+				rc = -1;
+				break;
+			    }
 			}
 			const Sector *filesector = D64_rsector(
 				d64, track, sector);
@@ -239,9 +250,9 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 			{
 			    logmsg(L_ERROR,
 				    "readCbmdosVfs: corrupt filesystem.");
+			    if (options->flags & CFF_RECOVER) goto nextfile;
 			    CbmdosFile_destroy(file);
 			    file = 0;
-			    if (options->flags & CFF_RECOVER) goto nextfile;
                             dirsect = 0;
 			    rc = -1;
 			    break;
@@ -250,9 +261,9 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
                         {
                             logmsg(L_ERROR,
                                     "readCbmdosVfs: corrupt filesystem.");
-                            CbmdosFile_destroy(file);
-                            file = 0;
 			    if (options->flags & CFF_RECOVER) goto nextfile;
+			    CbmdosFile_destroy(file);
+			    file = 0;
                             dirsect = 0;
 			    rc = -1;
                             break;

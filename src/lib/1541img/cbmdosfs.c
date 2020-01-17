@@ -222,7 +222,9 @@ static int updateDir(CbmdosFs *self)
         }
         const CbmdosFile *file = CbmdosVfs_rfile(self->vfs, i);
         uint8_t *dirent = dir + 0x20*dirpos;
-        dirent[2] = CbmdosFile_type(file);
+	int invalidType = CbmdosFile_invalidType(file);
+	if (invalidType < 0) dirent[2] = CbmdosFile_type(file);
+	else dirent[2] = (uint8_t)invalidType & 0xf;
         if (CbmdosFile_locked(file)) dirent[2] |= 1<<6;
         if (CbmdosFile_closed(file)) dirent[2] |= 1<<7;
         dirent[3] = self->dir.entries[i].starttrack;
@@ -276,8 +278,9 @@ static int updateFile(CbmdosFs *self, unsigned pos)
 
     scratchFile(self, pos);
 
+    int invalidType = CbmdosFile_invalidType(file);
     CbmdosFileType type = CbmdosFile_type(file);
-    if (type == CFT_DEL || !length)
+    if ((invalidType < 0 && type == CFT_DEL) || !length)
     {
 	uint16_t forcedBlocks = CbmdosFile_forcedBlocks(file);
 	if (forcedBlocks != 0xffff)

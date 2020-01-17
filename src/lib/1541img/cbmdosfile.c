@@ -29,6 +29,7 @@ SOEXPORT const char *CbmdosFileType_name(CbmdosFileType type)
 struct CbmdosFile
 {
     CbmdosFileType type;
+    int invalidType;
     int locked;
     int closed;
     int autoMapToLc;
@@ -59,6 +60,7 @@ SOEXPORT CbmdosFile *CbmdosFile_create(void)
     self->data = FileData_create();
     self->changedEvent = Event_create(0, self);
     self->type = CFT_PRG;
+    self->invalidType = -1;
     self->closed = 1;
     self->forcedBlocks = 0xffff;
     self->recordLength = 254;
@@ -71,22 +73,34 @@ SOEXPORT CbmdosFileType CbmdosFile_type(const CbmdosFile *self)
     return self->type;
 }
 
+SOEXPORT int CbmdosFile_invalidType(const CbmdosFile *self)
+{
+    return self->invalidType;
+}
+
 SOEXPORT int CbmdosFile_setType(CbmdosFile *self, CbmdosFileType type)
 {
+    int rc = 0;
+    int invalidType = -1;
+    type &= 0xf;
     if (type < CFT_DEL || type > CFT_REL)
     {
         logmsg(L_WARNING, "CbmdosFile_setType: invalid type.");
-        return -1;
+	invalidType = type;
+        type = CFT_DEL;
+	rc = -1;
     }
-    if (type == self->type) return 0;
-    if (self->type == CFT_DEL || type == CFT_DEL)
+    if (type == self->type && invalidType == self->invalidType) return rc;
+    if ((self->invalidType < 0 && self->type == CFT_DEL) ||
+	    (invalidType < 0 && type == CFT_DEL))
     {
 	CbmdosFile_setData(self, FileData_create());
     }
     self->type = type;
+    self->invalidType = invalidType;
     CbmdosFileEventArgs args = { CFE_TYPECHANGED };
     Event_raise(self->changedEvent, &args);
-    return 0;
+    return rc;
 }
 
 SOEXPORT const char *CbmdosFile_name(const CbmdosFile *self, uint8_t *length)
@@ -233,7 +247,10 @@ SOEXPORT int CbmdosFile_setRecordLength(CbmdosFile *self, uint8_t recordLength)
 
 SOEXPORT uint16_t CbmdosFile_realBlocks(const CbmdosFile *self)
 {
-    if (self->type == CFT_DEL || !self->data) return 0;
+    if ((self->invalidType < 0 && self->type == CFT_DEL) || !self->data)
+    {
+	return 0;
+    }
     size_t size = FileData_size(self->data);
     uint16_t blocks = size / 254;
     if (size % 254) ++blocks;
@@ -298,7 +315,14 @@ SOEXPORT void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line)
     int blocklen = sprintf((char *)line, "%u", CbmdosFile_blocks(self));
     memset(line + blocklen, 0xa0, 28 - blocklen);
     memcpy(line + 6, self->name, self->nameLength);
-    memcpy(line + 24, CbmdosFileType_name(self->type), 3);
+    if (self->invalidType < 0)
+    {
+	memcpy(line + 24, CbmdosFileType_name(self->type), 3);
+    }
+    else
+    {
+	memcpy(line + 24, "?  ", 3);
+    }
     line[5] = 0x22;
     uint8_t endidx = 6;
     while (line[endidx] != 0xa0) ++endidx;

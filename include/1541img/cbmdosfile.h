@@ -51,6 +51,14 @@ DECLEXPORT CbmdosFile *CbmdosFile_create(void);
  */
 DECLEXPORT CbmdosFileType CbmdosFile_type(const CbmdosFile *self);
 
+/** Invalid type of the file.
+ * If the file has an invalid type, the raw number of the type is returned.
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @returns the invalid type of this file, or -1 if the type is valid.
+ */
+DECLEXPORT int CbmdosFile_invalidType(const CbmdosFile *self);
+
 /** Set the type of the file
  * @memberof CbmdosFile
  * @param self the cbmdos file
