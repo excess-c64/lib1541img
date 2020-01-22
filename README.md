@@ -59,11 +59,11 @@ following commands:
     cd lib1541img
     git submodule update --init
 
-If you want to get a specific version, e.g. v0.9, use these commands:
+If you want to get a specific version, e.g. v1.0, use these commands:
 
     git clone https://github.com/excess-c64/lib1541img
     cd lib1541img
-    git checkout v0.9
+    git checkout v1.0
     git submodule update --init
 
 To build and install, use these commands:
