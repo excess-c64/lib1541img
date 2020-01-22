@@ -1,4 +1,4 @@
-# lib1541img
+# lib1541img - library for handling Commodore 1541 disk images (.d64)
 
 This is a library for creating and modifying images of disks for the Commodore
 1541 disk drive (`D64`). It's written in plain ISO C (C11) with no dependencies
@@ -22,7 +22,7 @@ layers:
 A simple event mechanism is included in the library, as well as a simple
 logging interface for enabling diagnostic output from the library.
 
-## Features
+# Features
 
 * Read and write D64 disk images
 * Support for 40- and 42-track images
@@ -33,7 +33,7 @@ logging interface for enabling diagnostic output from the library.
 * ZipCode files on D64 disk images
 * Create and import LyNX archive files
 
-### Not supported
+## Not supported
 
 * raw GCR images (.g64)
 * GEOS files
@@ -41,7 +41,7 @@ logging interface for enabling diagnostic output from the library.
 * C128 boot sectors
 * D64 error info
 
-### Warnings
+## Warnings
 
 If you use the functions of this library on a disk that has any of the
 unsupported features, you might lose data. If you aren't sure, better work
@@ -50,7 +50,7 @@ on a copy of your disk image file.
 Especially, error information appended to a D64 is silently ignored and won't
 be included when you save the image.
 
-## Build and install
+# Build and install
 
 To get the latest version of the source code, you will need `git` and use the
 following commands:
@@ -79,7 +79,7 @@ If you are on a system that doesn't use GNU make by default (like for example
 FreeBSD), install a GNU make package and use the command `gmake` instead of
 `make`.
 
-## Documentation
+# Documentation
 
 To build html documentation, you will need *Doxygen* installed on your system.
 Then use
@@ -90,7 +90,7 @@ This will create a full html documentation of the library's API.
 The html documentation is also installed with `make install` if it has been
 built before.
 
-## General usage
+# General usage
 
 *lib1541img* uses an object-oriented design. Methods of a class are prefixed
 with the class name, for example `FileData_appendByte()` will append a single
@@ -128,10 +128,10 @@ ownership of the other object, here's how you can know:
   Example: `ZcFileSet_saveVfs()` will store the files of a Zipcode file set
   into an existing `CbmdosVfs`.
 
-## Threading
+# Threading
 
-*lib1541im* doesn't use threads, but can be used in a threaded program if some
-care is taken:
+*lib1541img* doesn't use threads, but can be used in a threaded program if
+some care is taken:
 
 * Events work simply by direct calls, `CbmdosVfs` subscribes Events from each
   `CbmdosFile` and `CbmdosFs` subscribes events from `CbmdosVfs`. So, if you
@@ -145,7 +145,7 @@ care is taken:
   different threads, it's your responsibility to make your logwriter
   thread-safe.
 
-## Static linking
+# Static linking
 
 If you want to link *lib1541img* statically to your program, make sure the
 preprocessor macro `STATIC_1541IMG` is defined, otherwise you might get linking
@@ -158,7 +158,7 @@ static library, use these commands:
     make -j4 staticlibs
     make installstaticlibs
 
-## Example
+# Example
 
 The following code will read `foo.d64`, add a file `bar.prg` to the disk and
 save the result as `baz.d64`:
