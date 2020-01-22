@@ -9,7 +9,7 @@ endif
 	cbmdosfsoptions cbmdosvfs cbmdosvfseventargs cbmdosvfsreader d64 \
 	d64reader d64writer decl event filedata hostfilereader hostfilewriter \
 	log lynx sector track zc45compressor zc45extractor zc45reader \
-	zc45writer zcfileset
+	zc45writer zcfileset petscii
 1541img_HEADERDIR:= include$(PSEP)1541img
 1541img_DEFINES:= -DBUILDING_1541IMG
 1541img_V_MAJ:= 1
