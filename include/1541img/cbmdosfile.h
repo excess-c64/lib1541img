@@ -44,6 +44,14 @@ C_CLASS_DECL(CbmdosFile);
  */
 DECLEXPORT CbmdosFile *CbmdosFile_create(void);
 
+/** copy constructor.
+ * Creates a deep copy of an existing CbmdosFile
+ * @memberof CbmdosFile
+ * @param other the file to copy
+ * @returns the copied CbmdosFile
+ */
+DECLEXPORT CbmdosFile *CbmdosFile_clone(const CbmdosFile *other);
+
 /** Type of the file
  * @memberof CbmdosFile
  * @param self the cbmdos file

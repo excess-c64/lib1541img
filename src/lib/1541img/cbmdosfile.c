@@ -68,6 +68,28 @@ SOEXPORT CbmdosFile *CbmdosFile_create(void)
     return self;
 }
 
+SOEXPORT CbmdosFile *CbmdosFile_clone(const CbmdosFile *other)
+{
+    CbmdosFile *self = xmalloc(sizeof *self);
+    self->type = other->type;
+    self->invalidType = other->invalidType;
+    self->locked = other->locked;
+    self->closed = other->closed;
+    self->autoMapToLc = 0;
+    self->name = 0;
+    self->data = FileData_clone(other->data);
+    self->changedEvent = Event_create(0, self);
+    self->nameLength = 0;
+    self->recordLength = other->recordLength;
+    self->forcedBlocks = other->forcedBlocks;
+    uint8_t len;
+    const char *name = CbmdosFile_name(other, &len);
+    CbmdosFile_setName(self, name, len);
+    self->autoMapToLc = other->autoMapToLc;
+    Event_register(FileData_changedEvent(self->data), self, fileDataHandler);
+    return self;
+}
+
 SOEXPORT CbmdosFileType CbmdosFile_type(const CbmdosFile *self)
 {
     return self->type;
