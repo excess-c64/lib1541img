@@ -592,6 +592,7 @@ SOEXPORT CbmdosFs *CbmdosFs_create(CbmdosFsOptions options)
     }
     self->options = options;
     self->bam[17][0] = 1;
+    updateDir(self);
     updateBam(self);
     Event_register(CbmdosVfs_changedEvent(self->vfs), self, vfsChanged);
     return self;
