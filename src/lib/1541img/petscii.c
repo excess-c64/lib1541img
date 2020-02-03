@@ -231,7 +231,7 @@ static char toScreencode(unsigned char petsciiChar)
 
 static unsigned char toPetsciiChar(char screencode)
 {
-    if (screencode < 0 || screencode > 0x7f) return 0;
+    if ((unsigned char)screencode > 0x7f) return 0;
     if (screencode < 0x20 || screencode >= 0x60) return screencode + 0x40;
     if (screencode >= 0x40) return screencode + 0x20;
     return screencode;
@@ -273,20 +273,20 @@ static char lowerOrInvalid(unsigned char c, PetsciiCase *casemode)
 {
     guessCase(casemode, 1);
     if (canMapLower(casemode)) return c;
-    return 0xff;
+    return (char)-1;
 }
 
 static char upperOrInvalid(unsigned char c, PetsciiCase *casemode)
 {
     guessCase(casemode, 0);
     if (canMapUpper(casemode)) return c;
-    return 0xff;
+    return (char)-1;
 }
 
 static char screencodeFromUtf8(
 	const char *str, size_t strlen, size_t *strpos, PetsciiCase *casemode)
 {
-    if (*strpos >= strlen) return 0xff;
+    if (*strpos >= strlen) return (char)-1;
     unsigned char next = (unsigned char)str[(*strpos)++];
     if (next < 0x80)
     {
@@ -301,9 +301,9 @@ static char screencodeFromUtf8(
 	    return next - 0x40;
 	}
 	if (next == 0x40 || next == 0x5b || next == 0x5d) return next - 0x40;
-	return 0xff;
+	return (char)-1;
     }
-    if (*strpos >= strlen) return 0xff;
+    if (*strpos >= strlen) return (char)-1;
     switch (next)
     {
 	case 0xc2:
@@ -314,7 +314,7 @@ static char screencodeFromUtf8(
 
 	case 0xe2:
 	    next = (unsigned char)str[(*strpos)++];
-	    if (*strpos >= strlen) return 0xff;
+	    if (*strpos >= strlen) return (char)-1;
 	    switch (next)
 	    {
 		case 0x86:
@@ -398,10 +398,10 @@ static char screencodeFromUtf8(
 
 	case 0xf0:
 	    next = (unsigned char)str[(*strpos)++];
-	    if (*strpos >= strlen) return 0xff;
+	    if (*strpos >= strlen) return (char)-1;
 	    if (next != 0x9f) break;
 	    next = (unsigned char)str[(*strpos)++];
-	    if (*strpos >= strlen) return 0xff;
+	    if (*strpos >= strlen) return (char)-1;
 	    switch (next)
 	    {
 		case 0xad:
@@ -437,7 +437,7 @@ static char screencodeFromUtf8(
 
 	case 0xcf:
 	    next = (unsigned char)str[(*strpos)++];
-	    if (*strpos >= strlen) return 0xff;
+	    if (*strpos >= strlen) return (char)-1;
 	    if (next == 0x80) return upperOrInvalid(0x5e, casemode);
 	    break;
     }
@@ -445,7 +445,7 @@ static char screencodeFromUtf8(
     {
 	++(*strpos);
     }
-    return 0xff;
+    return (char)-1;
 }
 
 static size_t appendUtf8(
