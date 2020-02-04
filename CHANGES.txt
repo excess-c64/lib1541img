@@ -1,0 +1,10 @@
+lib1541img changelog
+====================
+
+
+v1.1
+----
+
+ * Add function to convert UTF-8 to PETSCII
+
+
