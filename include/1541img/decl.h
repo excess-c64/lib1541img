@@ -29,16 +29,17 @@
 #endif
 
 #ifdef _WIN32
-#  define SOEXPORT i1541___cdecl __declspec(dllexport)
 #  define SOLOCAL
-#  ifdef BUILDING_1541IMG
-#    define DECLEXPORT i1541___cdecl __declspec(dllexport)
+#  ifdef STATIC_1541IMG
+#    define DECLEXPORT i1541___cdecl
+#    define SOEXPORT i1541___cdecl
 #  else
-#    ifdef STATIC_1541IMG
-#      define DECLEXPORT i1541___cdecl
+#    ifdef BUILDING_1541IMG
+#      define DECLEXPORT i1541___cdecl __declspec(dllexport)
 #    else
 #      define DECLEXPORT i1541___cdecl __declspec(dllimport)
 #    endif
+#    define SOEXPORT i1541___cdecl __declspec(dllexport)
 #  endif
 #else
 #  define DECLEXPORT i1541___cdecl

@@ -12,6 +12,7 @@ endif
 	zc45writer zcfileset petscii
 1541img_HEADERDIR:= include$(PSEP)1541img
 1541img_DEFINES:= -DBUILDING_1541IMG
+1541img_CFLAGS_STATIC:= -DSTATIC_1541IMG
 1541img_V_MAJ:= 1
 1541img_V_MIN:= 1
 1541img_V_REV:= 0
