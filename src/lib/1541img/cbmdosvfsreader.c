@@ -47,17 +47,12 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
     const uint8_t *bam = Sector_rcontent(D64_rsector(d64, 18, 0));
     CbmdosVfs_setDosver(vfs, bam[2]);
     uint8_t nameoffset = 0;
-    uint8_t defaultver = 0x41;
-    if (options->flags & CFF_PROLOGICDOSBAM)
-    {
-	nameoffset = 0x14;
-	defaultver = 0x50;
-    }
+    if (options->flags & CFF_PROLOGICDOSBAM) nameoffset = 0x14;
     uint8_t namelen = 16;
     while (namelen && bam[namelen + 0x8f + nameoffset] == 0xa0) --namelen;
     CbmdosVfs_setName(vfs, (const char *)bam+0x90+nameoffset, namelen);
     uint8_t idlen = 5;
-    if (bam[0xa6+nameoffset] == defaultver)
+    if (bam[0xa6+nameoffset] == bam[2])
     {
 	--idlen;
 	if (bam[0xa5+nameoffset] == 0x32)
