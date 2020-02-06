@@ -72,6 +72,10 @@ typedef enum CbmdosFsFlags
                                          free sectors */
     CFF_TALLOC_PREFDIRTRACK = 1 << 12, /**< if files on dir track are allowed,
                                          put files there first */
+    CFF_TALLOC_CHAININTERLV = 1 << 13, /**< when having to change the track
+                                         while chaining a file, still apply
+                                         interleave instead of starting at
+                                         sector 0 on the new track */
 } CbmdosFsFlags;
 
 /** Filesystem options
