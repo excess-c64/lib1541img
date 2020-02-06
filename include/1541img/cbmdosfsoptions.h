@@ -50,7 +50,7 @@ typedef enum CbmdosFsFlags
                                          directory track */
     CFF_40TRACK = 1 << 2,           /**< filesystem spans over 40 tracks
                                          (instead of the default 35) */
-    CFF_42TRACK = 1 << 3,           /**< filesystem spans over 40 tracks
+    CFF_42TRACK = 1 << 3,           /**< filesystem spans over 42 tracks
                                          (instead of the default 35) */
     CFF_DOLPHINDOSBAM = 1 << 4,     /**< create a BAM for extended tracks in
                                          dolphindos format */
