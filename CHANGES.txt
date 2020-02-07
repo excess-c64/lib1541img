@@ -1,6 +1,11 @@
 lib1541img changelog
 ====================
 
+v1.2
+----
+
+ * Add different block allocation strategies and flags, behave exactly like
+   original CBM DOS by default
 
 v1.1
 ----
