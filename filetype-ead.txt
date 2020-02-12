@@ -1,0 +1,124 @@
+Excess archived dirart (.ead) file format specification
+-------------------------------------------------------
+
+Version: 1
+
+This is a file format for storing directory information of a Commodore disk.
+Multiple disk titles with ID and some disk properties can be stored, as well
+as multiple sets of file names, types and properties (but no file content).
+All entries can be named.
+
+The base unit of data is an octet (byte of 8 bits).
+
+Numbers (8, 16 or 32 bit wide) are stored in little-endian byte order.
+
+All indexes and offsets are given in hexadecimal.
+
+
+1. File header
+
+Index | Content
+-----------------------------------------------------------------------------
+   00 | 45 78 41 72 63 68 69 76 65 64 44 69 72 61 72 74
+      | Magic string "ExArchivedDirart" in ASCII encoding
+      |
+   10 | 00 1c
+      | Total length of the header, including the magic string
+      |
+   12 | 01
+      | File format version
+      |
+   13 | 01
+      | Oldest version that must be supported to successfully read the file
+      |
+   14 | xx xx xx xx
+      | Position of the first disk name/id entry in the file
+      | (32 bit unsigned)
+      |
+   18 | xx xx xx xx
+      | Position of the first set of filenames entry in the file
+      | (32 bit unsigned)
+
+
+2. Table of contents
+
+This follows directly after the file header.
+
+Offset | Content
+-----------------------------------------------------------------------------
+   +00 | xx xx xx xx
+       | Total length of the table of contents
+       |
+   +04 | xx xx xx xx
+       | Number of disk name/id entries
+       |
+   +08 | xx xx xx xx
+       | Number of filename-set entries
+       |
+   +0c | The names of the entries, first the disk name/id entries, then the
+       | filename-set entries. Each entry has the following form:
+       |   +00   - length of the name (16 bit unsigned), including
+       |           terminating 0-byte.
+       |   +02   - actual name in UTF-8 encoding, followed by a 0-byte.
+
+
+3. Disk name/id entry
+
+Offset | Content
+-----------------------------------------------------------------------------
+   +00 | 00 - 10
+       | The length of the disk name
+       |
+   +01 | 00 - 05
+       | The length of the disk id
+       |
+   +02 | The name of the disk (16 bytes in PETSCII encoding)
+       | Unused bytes should be filled with a0
+       |
+   +12 | The id of the disk (5 bytes in PETSCII encoding)
+       | Unused bytes should be filled with a0
+       |
+   +17 | DOS version of the disk (1 byte, normally 41)
+
+More disk name/id entries follow directly after the first one.
+
+
+4. Filename-set entry
+
+Offset | Content
+-----------------------------------------------------------------------------
+   +00 | ff ff ff ff
+       | disk name/id entry number associated with this set of files, starting
+       | from number 0, or ff ff ff ff to not associate any.
+       |
+   +04 | xx xx
+       | Number of files in this set (16 bit unsigned)
+       |
+   +06 | 00 14
+       | Length of one filename entry (16 bit unsigned)
+       |
+   +08 | First file: Commodore file type and flags for this file (1 byte)
+       | Bits 0 - 3:
+       |   000 - DEL
+       |   001 - SEQ
+       |   010 - PRG
+       |   011 - USR
+       |   100 - REL
+       | Bits 4 - 5: should always be 0
+       | Bit 6: "locked" flag (normally 0)
+       | Bit 7: "closed" flag (normally 1)
+       |
+   +09 | 00 - 10
+       | First file: the length of the file name
+       |
+   +0a | First file: name of the file (16 bytes in PETSCII encoding)
+       | Unused bytes should be filled with a0
+       |
+   +1a | ff ff
+       | First file: forced block size (or ff ff to not force a block size)
+       |
+   +1c | Second file: [...] (see first file at offset +08)
+   ... | ...
+
+More filename-set entries follow directly after the first one.
+
