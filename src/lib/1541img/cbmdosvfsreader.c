@@ -211,6 +211,10 @@ SOLOCAL int readCbmdosVfsInternal(CbmdosVfs *vfs, const D64 *d64,
 		    FileData *data = CbmdosFile_data(file);
 		    uint8_t track = direntry[3];
 		    uint8_t sector = direntry[4];
+                    if (track == 18 && (sector == 0 || sector == 1))
+                    {
+                        track = 0;
+                    }
                     int doingsidesects = 0;
 		    while (track)
 		    {
@@ -439,6 +443,7 @@ SOEXPORT int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
     rdmap[17][0] = 1;
     rdmap[17][1] = 1;
 
+    int firstfile = 1;
     while (dirsect)
     {
         const uint8_t *dirbytes = Sector_rcontent(dirsect);
@@ -459,6 +464,17 @@ SOEXPORT int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 		{
 		    uint8_t track = direntry[3];
 		    uint8_t sector = direntry[4];
+                    if (track == 18)
+                    {
+                        if (sector == 0 || sector == 1)
+                        {
+                            track = 0;
+                        }
+                        else if (firstfile)
+                        {
+                            probeopts.flags |= CFF_TALLOC_PREFDIRTRACK;
+                        }
+                    }
                     int doingsidesects = 0;
 		    while (track)
 		    {
@@ -506,7 +522,7 @@ SOEXPORT int probeCbmdosFsOptions(CbmdosFsOptions *options, const D64 *d64)
 		    }
 		}
 nextfile:
-		;
+		firstfile = 0;
             }
         }
         if (dirbytes[0])
