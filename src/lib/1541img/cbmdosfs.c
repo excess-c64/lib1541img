@@ -38,7 +38,7 @@ static void createTrackBam(CbmdosFs *self, uint8_t *tbam, uint8_t trackno)
     tbam[0] = sectors;
     tbam[1] = 0xff;
     tbam[2] = 0xff;
-    tbam[3] = 0xff;
+    tbam[3] = 0xff >> (24 - sectors);
     for (uint8_t sectno = 0; sectno < sectors; ++sectno)
     {
         if (self->bam[trackno-1][sectno])
@@ -84,7 +84,7 @@ static void updateBam(CbmdosFs *self)
     }
     uint8_t nameoffset = 0;
     if (self->options.flags & CFF_PROLOGICDOSBAM) nameoffset = 0x14;
-    memset(bam+0x90+nameoffset, 0xa0, 0x1a);
+    memset(bam+0x90+nameoffset, 0xa0, 0x1b);
     bam[0xa5+nameoffset] = 0x32;
     bam[0xa6+nameoffset] = CbmdosVfs_dosver(self->vfs);
     uint8_t length;
