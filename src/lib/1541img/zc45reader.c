@@ -128,17 +128,6 @@ static int decodesector(D64 *d64, const uint8_t *zcfile,
     logsetsilent(0);
     if (!sector)
     {
-	while (sectornum == tracknum)
-	{
-	    int next = nextbyte(zcfile, pos, zcfilelen);
-	    if (next < 0)
-            {
-                logfmt(L_INFO, "zc45_read: ignoring extra $%02hhx bytes at "
-                        "end of file.", tracknum);
-                return -2;
-            }
-	    if (next != sectornum) break;
-	}
         logfmt(L_ERROR, "zc45_read: Invalid sector %hhu:%hhu found.",
                 tracknum, sectornum);
 	return -1;
@@ -166,7 +155,8 @@ static int decodesector(D64 *d64, const uint8_t *zcfile,
     }
 }
 
-SOEXPORT int zc45_read(D64 *d64, const uint8_t *zcfile, size_t zcfilelen)
+SOEXPORT int zc45_read(
+        D64 *d64, int sectors, const uint8_t *zcfile, size_t zcfilelen)
 {
     if (zcfilelen < 5)
     {
@@ -187,17 +177,23 @@ SOEXPORT int zc45_read(D64 *d64, const uint8_t *zcfile, size_t zcfilelen)
             logfmt(L_ERROR, "zc45_read: not a valid zipcode file.");
 	    return -1;
     }
-    int sectors = 0;
+    int rsects = 0;
     while (pos < zcfilelen)
     {
+        if (sectors >= 0 && rsects == sectors)
+        {
+            logfmt(L_INFO, "zc45_read: ignoring extra data after reading "
+                    "%d sectors.", sectors);
+            break;
+        }
 	int rc;
 	if ((rc = decodesector(d64, zcfile, &pos, zcfilelen)) < 0)
 	{
 	    if (rc == -2) break;
 	    return -1;
 	}
-	++sectors;
+	++rsects;
     }
-    return sectors;
+    return rsects;
 }
 

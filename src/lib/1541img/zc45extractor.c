@@ -23,7 +23,8 @@ SOEXPORT D64 *extractZc45(const ZcFileSet *fileset)
     for (int i = 0; i < (type == ZT_4PACK ? 4 : 5); ++i)
     {
 	const FileData *fd = ZcFileSet_rfileData(fileset, i);
-	if (zc45_read(extracted, FileData_rcontent(fd), FileData_size(fd))
+	if (zc45_read(extracted, sectorcount[i],
+                    FileData_rcontent(fd), FileData_size(fd))
 		!= sectorcount[i])
 	{
             logfmt(L_ERROR, "extractZc45: extraction failed in part %d.", i+1);
