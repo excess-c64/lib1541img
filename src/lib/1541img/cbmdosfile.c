@@ -39,6 +39,7 @@ struct CbmdosFile
     uint8_t nameLength;
     uint8_t recordLength;
     uint16_t forcedBlocks;
+    CbmdosFsOptOverrides overrides;
 };
 
 static void fileDataHandler(void *receiver, int id, const void *sender,
@@ -82,6 +83,7 @@ SOEXPORT CbmdosFile *CbmdosFile_clone(const CbmdosFile *other)
     self->nameLength = 0;
     self->recordLength = other->recordLength;
     self->forcedBlocks = other->forcedBlocks;
+    self->overrides = other->overrides;
     uint8_t len;
     const char *name = CbmdosFile_name(other, &len);
     CbmdosFile_setName(self, name, len);
@@ -296,6 +298,18 @@ SOEXPORT void CbmdosFile_setForcedBlocks(
     self->forcedBlocks = forcedBlocks;
     CbmdosFileEventArgs args = { CFE_FORCEDBLOCKSCHANGED };
     Event_raise(self->changedEvent, &args);
+}
+
+SOEXPORT CbmdosFsOptOverrides CbmdosFile_optOverrides(
+        const CbmdosFile *self)
+{
+    return self->overrides;
+}
+
+SOEXPORT void CbmdosFile_setOptOverrides(
+        CbmdosFile *self, CbmdosFsOptOverrides overrides)
+{
+    self->overrides = overrides;
 }
 
 SOEXPORT int CbmdosFile_locked(const CbmdosFile *self)

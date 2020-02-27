@@ -113,13 +113,13 @@ static void deleteChain(CbmdosFs *self, uint8_t nexttrack, uint8_t nextsect)
 }
 
 static uint8_t freeSectorOnTrack(CbmdosFs *self, uint8_t trackno,
-        uint8_t sectno, uint8_t interlv)
+        uint8_t sectno, uint8_t interlv, int simpleInterlv)
 {
     uint8_t sectors = Track_sectors(D64_track(self->d64, trackno));
     uint8_t nextsect = 0;
     if (interlv)
     {
-	if (self->options.flags & CFF_SIMPLEINTERLEAVE)
+	if (simpleInterlv)
 	{
 	    nextsect = (sectno + interlv) % sectors;
 	}
@@ -143,61 +143,61 @@ static uint8_t freeSectorOnTrack(CbmdosFs *self, uint8_t trackno,
     return self->bam[trackno-1][nextsect] ? 0xff : nextsect;
 }
 
-static uint8_t nextTrack(CbmdosFs *self, uint8_t trackno)
+static uint8_t nextTrack(const CbmdosFsOptions *opts, uint8_t trackno)
 {
-    if (self->options.flags & CFF_TALLOC_TRACKLOAD)
+    if (opts->flags & CFF_TALLOC_TRACKLOAD)
     {
-	if (trackno >= 40 && !(self->options.flags & CFF_42TRACK))
+	if (trackno >= 40 && !(opts->flags & CFF_42TRACK))
 	{
 	    return 0;
 	}
 	if (trackno >= 35 &&
-		!(self->options.flags & (CFF_40TRACK | CFF_42TRACK)))
+		!(opts->flags & (CFF_40TRACK | CFF_42TRACK)))
 	{
 	    return 0;
 	}
 	if (trackno == 42) return 0;
 	if (trackno == 17)
 	{
-	    if ((self->options.flags & CFF_FILESONDIRTRACK) &&
-		    !(self->options.flags & CFF_TALLOC_PREFDIRTRACK))
+	    if ((opts->flags & CFF_FILESONDIRTRACK) &&
+		    !(opts->flags & CFF_TALLOC_PREFDIRTRACK))
 	    {
 		return 18;
 	    }
 	    return 19;
 	}
 	if (trackno == 18
-		&& (self->options.flags & CFF_FILESONDIRTRACK)
-		&& (self->options.flags & CFF_TALLOC_PREFDIRTRACK))
+		&& (opts->flags & CFF_FILESONDIRTRACK)
+		&& (opts->flags & CFF_TALLOC_PREFDIRTRACK))
 	{
 	    return 1;
 	}
 	return trackno + 1;
     }
-    else if (self->options.flags & CFF_TALLOC_SIMPLE)
+    else if (opts->flags & CFF_TALLOC_SIMPLE)
     {
 	if (trackno == 42)
 	{
-	    if ((self->options.flags & CFF_FILESONDIRTRACK) &&
-		    !(self->options.flags & CFF_TALLOC_PREFDIRTRACK))
+	    if ((opts->flags & CFF_FILESONDIRTRACK) &&
+		    !(opts->flags & CFF_TALLOC_PREFDIRTRACK))
 	    {
 		return 18;
 	    }
 	    return 0;
 	}
-	if (trackno == 40 || (trackno == 35 && !(self->options.flags &
+	if (trackno == 40 || (trackno == 35 && !(opts->flags &
 			(CFF_40TRACK | CFF_42TRACK))))
 	{
 	    return 1;
 	}
 	if (trackno == 17)
 	{
-	    if (self->options.flags & CFF_42TRACK)
+	    if (opts->flags & CFF_42TRACK)
 	    {
 		return 41;
 	    }
-	    if ((self->options.flags & CFF_FILESONDIRTRACK) &&
-		    !(self->options.flags & CFF_TALLOC_PREFDIRTRACK))
+	    if ((opts->flags & CFF_FILESONDIRTRACK) &&
+		    !(opts->flags & CFF_TALLOC_PREFDIRTRACK))
 	    {
 		return 18;
 	    }
@@ -205,8 +205,8 @@ static uint8_t nextTrack(CbmdosFs *self, uint8_t trackno)
 	}
 	if (trackno == 18)
 	{
-	    if ((self->options.flags & CFF_FILESONDIRTRACK)
-		    && (self->options.flags & CFF_TALLOC_PREFDIRTRACK))
+	    if ((opts->flags & CFF_FILESONDIRTRACK)
+		    && (opts->flags & CFF_TALLOC_PREFDIRTRACK))
 	    {
 		return 19;
 	    }
@@ -216,12 +216,12 @@ static uint8_t nextTrack(CbmdosFs *self, uint8_t trackno)
     }
     else
     {
-	if (trackno >= 40 && !(self->options.flags & CFF_42TRACK))
+	if (trackno >= 40 && !(opts->flags & CFF_42TRACK))
 	{
 	    return 0;
 	}
 	if (trackno >= 35 &&
-		!(self->options.flags & (CFF_40TRACK | CFF_42TRACK)))
+		!(opts->flags & (CFF_40TRACK | CFF_42TRACK)))
 	{
 	    return 0;
 	}
@@ -229,8 +229,8 @@ static uint8_t nextTrack(CbmdosFs *self, uint8_t trackno)
 	if (trackno == 1) return 0;
 	if (trackno == 18)
 	{
-	    if ((self->options.flags & CFF_FILESONDIRTRACK)
-		    && (self->options.flags & CFF_TALLOC_PREFDIRTRACK))
+	    if ((opts->flags & CFF_FILESONDIRTRACK)
+		    && (opts->flags & CFF_TALLOC_PREFDIRTRACK))
 	    {
 		return 17;
 	    }
@@ -241,36 +241,36 @@ static uint8_t nextTrack(CbmdosFs *self, uint8_t trackno)
     }
 }
 
-static uint8_t startTrack(CbmdosFs *self, uint8_t trackno)
+static uint8_t startTrack(const CbmdosFsOptions *opts, uint8_t trackno)
 {
     if (!trackno)
     {
-	if ((self->options.flags & CFF_FILESONDIRTRACK)
-		&& (self->options.flags & CFF_TALLOC_PREFDIRTRACK))
+	if ((opts->flags & CFF_FILESONDIRTRACK)
+		&& (opts->flags & CFF_TALLOC_PREFDIRTRACK))
 	{
 	    return 18;
 	}
-	if (self->options.flags & CFF_TALLOC_TRACKLOAD)
+	if (opts->flags & CFF_TALLOC_TRACKLOAD)
 	{
 	    return 1;
 	}
-	if (self->options.flags & CFF_TALLOC_SIMPLE)
+	if (opts->flags & CFF_TALLOC_SIMPLE)
 	{
 	    return 19;
 	}
 	return 17;
     }
-    if (self->options.flags & (CFF_TALLOC_TRACKLOAD | CFF_TALLOC_SIMPLE))
+    if (opts->flags & (CFF_TALLOC_TRACKLOAD | CFF_TALLOC_SIMPLE))
     {
-	return nextTrack(self, trackno);
+	return nextTrack(opts, trackno);
     }
-    if (trackno >= 40 && !(self->options.flags & CFF_42TRACK))
+    if (trackno >= 40 && !(opts->flags & CFF_42TRACK))
     {
 	return 0;
     }
     if (trackno >= 35)
     {
-	if (!(self->options.flags & (CFF_40TRACK | CFF_42TRACK)))
+	if (!(opts->flags & (CFF_40TRACK | CFF_42TRACK)))
 	{
 	    return 0;
 	}
@@ -282,9 +282,10 @@ static uint8_t startTrack(CbmdosFs *self, uint8_t trackno)
     return 18 + diff - 1;
 }
 
-static int findStartSector(CbmdosFs *self, uint8_t *trackno, uint8_t *sectno)
+static int findStartSector(CbmdosFs *self,
+        uint8_t *trackno, uint8_t *sectno, const CbmdosFsOptions *opts)
 {
-    uint8_t tn = startTrack(self, 0);
+    uint8_t tn = startTrack(opts, 0);
     do
     {
 	for (uint8_t sn = 0;
@@ -297,15 +298,16 @@ static int findStartSector(CbmdosFs *self, uint8_t *trackno, uint8_t *sectno)
 		return 0;
 	    }
 	}
-    } while ((tn = startTrack(self, tn)));
+    } while ((tn = startTrack(opts, tn)));
     return -1;
 }
 
-static int findNextSector(CbmdosFs *self, uint8_t *trackno, uint8_t *sectno)
+static int findNextSector(CbmdosFs *self,
+        uint8_t *trackno, uint8_t *sectno, const CbmdosFsOptions *opts)
 {
     uint8_t tn = *trackno;
-    uint8_t sn = freeSectorOnTrack(self, tn, *sectno,
-	    self->options.fileInterleave);
+    uint8_t sn = freeSectorOnTrack(self, tn, *sectno, opts->fileInterleave,
+            (opts->flags & CFF_SIMPLEINTERLEAVE));
     do
     {
 	if (sn != 0xff)
@@ -314,20 +316,20 @@ static int findNextSector(CbmdosFs *self, uint8_t *trackno, uint8_t *sectno)
 	    *sectno = sn;
 	    return 0;
 	}
-	if ((tn = nextTrack(self, tn)))
+	if ((tn = nextTrack(opts, tn)))
 	{
-	    if (self->options.flags & CFF_TALLOC_CHAININTERLV)
+	    if (opts->flags & CFF_TALLOC_CHAININTERLV)
 	    {
-		sn = freeSectorOnTrack(self, tn, sn,
-			self->options.fileInterleave);
+		sn = freeSectorOnTrack(self, tn, sn, opts->fileInterleave,
+                        (opts->flags & CFF_SIMPLEINTERLEAVE));
 	    }
 	    else
 	    {
-		sn = freeSectorOnTrack(self, tn, sn, 0);
+		sn = freeSectorOnTrack(self, tn, sn, 0, 0);
 	    }
 	}
     } while (tn);
-    return findStartSector(self, trackno, sectno);
+    return findStartSector(self, trackno, sectno, opts);
 }
 
 static int updateDir(CbmdosFs *self)
@@ -345,17 +347,19 @@ static int updateDir(CbmdosFs *self)
         if (dirpos == 8)
         {
             uint8_t nextsect = freeSectorOnTrack(self, trackno, sectno,
-                    self->options.dirInterleave);
+                    self->options.dirInterleave,
+                    (self->options.flags & CFF_SIMPLEINTERLEAVE));
             if (nextsect == 0xff)
             {
                 if (!(self->options.flags & CFF_ALLOWLONGDIR)) goto fail;
                 while (nextsect == 0xff)
                 {
-                    uint8_t nexttrack = nextTrack(self, trackno);
+                    uint8_t nexttrack = nextTrack(&(self->options), trackno);
                     if (nexttrack == 18) goto fail;
                     trackno = nexttrack;
                     nextsect = freeSectorOnTrack(self, trackno, sectno,
-                            self->options.dirInterleave);
+                            self->options.dirInterleave,
+                            (self->options.flags & CFF_SIMPLEINTERLEAVE));
                 }
             }
             sectno = nextsect;
@@ -437,11 +441,15 @@ static int updateFile(CbmdosFs *self, unsigned pos)
 	return 0;
     }
 
+    CbmdosFsOptOverrides overrides = CbmdosFile_optOverrides(file);
+    CbmdosFsOptions opts = self->options;
+    CbmdosFsOptions_applyOverrides(&opts, &overrides);
+
     uint8_t tracks[720];
     uint8_t sectors[720];
     uint16_t sidesectlinkno = 0;
 
-    if (findStartSector(self, &trackno, &sectno) < 0) goto fail;
+    if (findStartSector(self, &trackno, &sectno, &opts) < 0) goto fail;
     self->dir.entries[pos].starttrack = trackno;
     self->dir.entries[pos].startsector = sectno;
     const uint8_t *content = FileData_rcontent(fdat);
@@ -472,7 +480,7 @@ static int updateFile(CbmdosFs *self, unsigned pos)
 	}
 	else
 	{
-	    if (findNextSector(self, &trackno, &sectno) < 0)
+	    if (findNextSector(self, &trackno, &sectno, &opts) < 0)
 	    {
 		scratchFile(self, pos);
 		goto fail;
@@ -498,7 +506,7 @@ static int updateFile(CbmdosFs *self, unsigned pos)
         uint8_t sidesectors[6] = { 0 };
         uint8_t recordlen = CbmdosFile_recordLength(file);
 
-        if (findStartSector(self, &trackno, &sectno) < 0)
+        if (findStartSector(self, &trackno, &sectno, &opts) < 0)
         {
             scratchFile(self, pos);
             goto fail;
@@ -515,7 +523,7 @@ static int updateFile(CbmdosFs *self, unsigned pos)
         sidesects[0][3] = recordlen;
         for (uint8_t i = 1; i < sidesectnum; ++i)
         {
-            if (findNextSector(self, &trackno, &sectno) < 0)
+            if (findNextSector(self, &trackno, &sectno, &opts) < 0)
             {
                 scratchFile(self, pos);
                 goto fail;

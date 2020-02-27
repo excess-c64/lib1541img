@@ -5,6 +5,8 @@
  * @file
  */
 
+#include <stdint.h>
+
 #include <1541img/decl.h>
 
 /** Some flags defining behavior of the filesystem.
@@ -61,6 +63,8 @@ typedef enum CbmdosFsFlags
     CFF_ZEROFREE = 1 << 7,          /**< report no free blocks in directory */
     CFF_RECOVER = 1 << 8,	    /**< when reading from disk image, try
 				         to recover a broken filesystem */
+    CFF_OVERRIDE_INTERLEAVE = 0x1ff,/**< when used as per-file override, the
+                                         mask for the interleave value */
     CFF_SIMPLEINTERLEAVE = 1 << 9,  /**< when applying interleave, use a
                                          simple modulo */
     CFF_TALLOC_TRACKLOAD = 1 << 10, /**< search for first free sector starting
@@ -90,5 +94,46 @@ struct CbmdosFsOptions
                                          directory */
     uint8_t fileInterleave;         /**< sector interleave to use for files */
 };
+
+/** Per file overrides of filesystem options.
+ * @struct CbmdosFsOptOverrides cbmdosfsoptions.h <1541img/cbmdosfsoptions.h>
+ *
+ * This struct contains two sets of flags, one containing actual flag values,
+ * the other determining which of the flags should override the ones from the
+ * global filesystem options.
+ *
+ * Flags CFF_ALLOWLONDIR to CFF_RECOVER (Bits 0 to 8) cannot be overridden and
+ * are used here to store an overridden file interleave value instead.
+ */
+C_CLASS_DECL(CbmdosFsOptOverrides);
+
+struct CbmdosFsOptOverrides
+{
+    CbmdosFsFlags flags;    /**< the overridden flag values */
+    CbmdosFsFlags mask;     /**< the mask telling which flags to override */
+};
+
+/** Apply overrides to given options.
+ * @memberof CbmdosFsOptions
+ * @param self the filesystem options
+ * @param overrides the overrides to apply
+ */
+void CbmdosFsOptions_applyOverrides(CbmdosFsOptions *self,
+        const CbmdosFsOptOverrides *overrides);
+
+/** Overridden file interleave value.
+ * @memberof CbmdosFsOptOverrides
+ * @param self the filesystem option overrides
+ * @returns the overridden interleave value, or 0xff if not overridden
+ */
+uint8_t CbmdosFsOptOverrides_interleave(const CbmdosFsOptOverrides *self);
+
+/** Set overridden file interleave value.
+ * @memberof CbmdosFsOptOverrides
+ * @param self the filesystem option overrides
+ * @param interleave overriden interleave value, or 0xff to not override
+ */
+void CbmdosFsOptOverrides_setInterleave(
+        CbmdosFsOptOverrides *self, uint8_t interleave);
 
 #endif

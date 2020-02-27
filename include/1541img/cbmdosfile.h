@@ -11,6 +11,7 @@
 #include <1541img/decl.h>
 
 #include <1541img/cbmdosfileeventargs.h>
+#include <1541img/cbmdosfsoptions.h>
 
 C_CLASS_DECL(FileData);
 C_CLASS_DECL(Event);
@@ -205,6 +206,22 @@ DECLEXPORT uint16_t CbmdosFile_forcedBlocks(const CbmdosFile *self);
  */
 DECLEXPORT void CbmdosFile_setForcedBlocks(
 	CbmdosFile *self, uint16_t forcedBlocks);
+
+/** Overrides for some CbmdosFs options
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @returns the option overrides
+ */
+DECLEXPORT CbmdosFsOptOverrides CbmdosFile_optOverrides(
+        const CbmdosFile *self);
+
+/** Set overrides for some CbmdosFs options
+ * @memberof CbmdosFile
+ * @param self the cbmdos file
+ * @param overrides the new option overrides
+ */
+DECLEXPORT void CbmdosFile_setOptOverrides(
+        CbmdosFile *self, CbmdosFsOptOverrides overrides);
 
 /** Locked flag of the file
  * @memberof CbmdosFile
