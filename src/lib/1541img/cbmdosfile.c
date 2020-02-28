@@ -367,8 +367,13 @@ SOEXPORT void CbmdosFile_getDirLine(const CbmdosFile *self, uint8_t *line)
     }
     line[5] = 0x22;
     uint8_t endidx = 6;
-    while (line[endidx] != 0xa0) ++endidx;
-    line[endidx] = 0x22;
+    int qclosed = 0;
+    while (line[endidx] != 0xa0)
+    {
+	if (line[endidx] == 0x22) qclosed = 1;
+	++endidx;
+    }
+    if (!qclosed) line[endidx] = 0x22;
     if (!self->closed) line[23] = 0x2a;
     if (self->locked) line[27] = 0x3c;
 }

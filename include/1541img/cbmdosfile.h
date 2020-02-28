@@ -1,7 +1,7 @@
 #ifndef I1541_CBMDOSFILE_H
 #define I1541_CBMDOSFILE_H
 
-/** Declarations for the CbmDosFile class
+/** Declarations for the CbmdosFile class
  * @file
  */
 
