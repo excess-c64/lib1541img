@@ -686,7 +686,8 @@ static void vfsChanged(void *receiver, int id, const void *sender,
 	    if (ea->fileEventArgs->what == CFE_DATACHANGED
                     || ea->fileEventArgs->what == CFE_TYPECHANGED
                     || ea->fileEventArgs->what == CFE_RECORDLENGTHCHANGED
-		    || ea->fileEventArgs->what == CFE_FORCEDBLOCKSCHANGED)
+		    || ea->fileEventArgs->what == CFE_FORCEDBLOCKSCHANGED
+		    || ea->fileEventArgs->what == CFE_OPTOVERRIDESCHANGED)
 	    {
 		if (updateFile(self, ea->filepos) < 0)
 		{

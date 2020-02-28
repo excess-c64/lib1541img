@@ -309,7 +309,13 @@ SOEXPORT CbmdosFsOptOverrides CbmdosFile_optOverrides(
 SOEXPORT void CbmdosFile_setOptOverrides(
         CbmdosFile *self, CbmdosFsOptOverrides overrides)
 {
-    self->overrides = overrides;
+    if (overrides.mask != self->overrides.mask
+	    || overrides.flags != self->overrides.flags)
+    {
+	self->overrides = overrides;
+	CbmdosFileEventArgs args = { CFE_OPTOVERRIDESCHANGED };
+	Event_raise(self->changedEvent, &args);
+    }
 }
 
 SOEXPORT int CbmdosFile_locked(const CbmdosFile *self)
