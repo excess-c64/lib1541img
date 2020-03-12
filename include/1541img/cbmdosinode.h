@@ -10,7 +10,7 @@
 
 #include <1541img/decl.h>
 
-#include <1541img/cbmdosfileeventargs.h>
+#include <1541img/cbmdosinodeeventargs.h>
 #include <1541img/cbmdosfsoptions.h>
 
 C_CLASS_DECL(FileData);
@@ -60,43 +60,12 @@ DECLEXPORT FileData *CbmdosInode_data(CbmdosInode *self);
  */
 DECLEXPORT void CbmdosInode_setData(CbmdosInode *self, FileData *data);
 
-/** Export to a raw host file.
- * Exports the current file contents to a raw file on the host. Note that for
- * REL files, this will lose the record length information.
- * @memberof CbmdosInode
- * @param self the cbmdos file
- * @param file a file opened for writing to write the contents to
- * @returns 0 on success, -1 on error
- */
-DECLEXPORT int CbmdosInode_exportRaw(const CbmdosInode *self, FILE *file);
-
-/** Export to a PC64 (Pxx/Sxx/Uxx/Rxx) host file.
- * Exports the current file contents to a file on the host in PC64 format.
- * This includes the original filename and, for REL files, the record length.
- * @memberof CbmdosInode
- * @param self the cbmdos file
- * @param file a file opened for writing to write the contents to
- * @returns 0 on success, -1 on error
- */
-DECLEXPORT int CbmdosInode_exportPC64(const CbmdosInode *self, FILE *file);
-
-/** Import a host file as new file content
- * Imports a host file as the new file content. PC64 files are automatically
- * detected and name and record length are set accordingly. All other files
- * are treated as raw file data.
- * @memberof CbmdosInode
- * @param self the cbmdos file
- * @param file a file opened for reading to read the contents from
- * @returns 0 on success, -1 on error
- */
-DECLEXPORT int CbmdosInode_import(CbmdosInode *self, FILE *file);
-
 /** Number of blocks the file currently needs on disk
  * @memberof CbmdosInode
  * @param self the cbmdos file
  * @returns number of blocks
  */
-DECLEXPORT uint16_t CbmdosInode_realBlocks(const CbmdosInode *self);
+DECLEXPORT uint16_t CbmdosInode_blocks(const CbmdosInode *self);
 
 /** Overrides for some CbmdosFs options
  * @memberof CbmdosInode

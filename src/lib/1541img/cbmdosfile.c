@@ -389,5 +389,6 @@ SOEXPORT void CbmdosFile_destroy(CbmdosFile *self)
     free(self->name);
     Event_destroy(self->changedEvent);
     FileData_destroy(self->data);
+    free(self);
 }
 

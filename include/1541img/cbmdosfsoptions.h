@@ -113,6 +113,10 @@ struct CbmdosFsOptOverrides
     CbmdosFsFlags mask;     /**< the mask telling which flags to override */
 };
 
+/** Default value for option overrides (no overrides)
+ */
+#define CFOO_NONE ((CbmdosFsOptOverrides){ 0, 0 })
+
 /** Apply overrides to given options.
  * @memberof CbmdosFsOptions
  * @param self the filesystem options
