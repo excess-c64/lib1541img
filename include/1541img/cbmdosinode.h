@@ -1,5 +1,5 @@
-#ifndef I1541_CBMDOSFILE_H
-#define I1541_CBMDOSFILE_H
+#ifndef I1541_CBMDOSINODE_H
+#define I1541_CBMDOSINODE_H
 
 /** Declarations for the CbmdosInode class
  * @file
