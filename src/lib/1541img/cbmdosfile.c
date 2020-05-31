@@ -3,6 +3,7 @@
 
 #include "util.h"
 #include "log.h"
+#include <1541img/cbmdosinode.h>
 #include <1541img/event.h>
 #include <1541img/filedata.h>
 #include <1541img/hostfilereader.h>
@@ -28,44 +29,52 @@ SOEXPORT const char *CbmdosFileType_name(CbmdosFileType type)
 
 struct CbmdosFile
 {
+    Event *changedEvent;
+    char *name;
+    CbmdosInode *inode;
     CbmdosFileType type;
     int invalidType;
     int locked;
     int closed;
     int autoMapToLc;
-    char *name;
-    FileData *data;
-    Event *changedEvent;
     uint8_t nameLength;
     uint8_t recordLength;
     uint16_t forcedBlocks;
-    CbmdosFsOptOverrides overrides;
 };
 
-static void fileDataHandler(void *receiver, int id, const void *sender,
+static void inodeHandler(void *receiver, int id, const void *sender,
         const void *args)
 {
     (void)id;
-    (void)args;
     (void)sender;
 
-    CbmdosFileEventArgs ea = { CFE_DATACHANGED };
+    const CbmdosInodeEventArgs *iea = args;
     CbmdosFile *self = receiver;
-    Event_raise(self->changedEvent, &ea);
+
+    if (iea->what == CIE_DATACHANGED)
+    {
+	CbmdosFileEventArgs ea = { CFE_DATACHANGED };
+	Event_raise(self->changedEvent, &ea);
+    }
+    else if (iea->what == CIE_OPTOVERRIDESCHANGED)
+    {
+	CbmdosFileEventArgs ea = { CFE_OPTOVERRIDESCHANGED };
+	Event_raise(self->changedEvent, &ea);
+    }
 }
 
 SOEXPORT CbmdosFile *CbmdosFile_create(void)
 {
     CbmdosFile *self = xmalloc(sizeof *self);
     memset(self, 0, sizeof *self);
-    self->data = FileData_create();
+    self->inode = CbmdosInode_create();
     self->changedEvent = Event_create(0, self);
     self->type = CFT_PRG;
     self->invalidType = -1;
     self->closed = 1;
     self->forcedBlocks = 0xffff;
     self->recordLength = 254;
-    Event_register(FileData_changedEvent(self->data), self, fileDataHandler);
+    Event_register(CbmdosInode_changedEvent(self->inode), self, inodeHandler);
     return self;
 }
 
@@ -78,17 +87,16 @@ SOEXPORT CbmdosFile *CbmdosFile_clone(const CbmdosFile *other)
     self->closed = other->closed;
     self->autoMapToLc = 0;
     self->name = 0;
-    self->data = FileData_clone(other->data);
+    self->inode = CbmdosInode_clone(other->inode);
     self->changedEvent = Event_create(0, self);
     self->nameLength = 0;
     self->recordLength = other->recordLength;
     self->forcedBlocks = other->forcedBlocks;
-    self->overrides = other->overrides;
     uint8_t len;
     const char *name = CbmdosFile_name(other, &len);
     CbmdosFile_setName(self, name, len);
     self->autoMapToLc = other->autoMapToLc;
-    Event_register(FileData_changedEvent(self->data), self, fileDataHandler);
+    Event_register(CbmdosInode_changedEvent(self->inode), self, inodeHandler);
     return self;
 }
 
@@ -179,27 +187,22 @@ SOEXPORT void CbmdosFile_mapUpperGfxToLower(CbmdosFile *self)
 
 SOEXPORT const FileData *CbmdosFile_rdata(const CbmdosFile *self)
 {
-    return self->data;
+    return CbmdosInode_data(self->inode);
 }
 
 SOEXPORT FileData *CbmdosFile_data(CbmdosFile *self)
 {
-    return self->data;
+    return CbmdosInode_data(self->inode);
 }
 
 SOEXPORT void CbmdosFile_setData(CbmdosFile *self, FileData *data)
 {
-    Event_unregister(FileData_changedEvent(self->data), self, fileDataHandler);
-    FileData_destroy(self->data);
-    self->data = data;
-    Event_register(FileData_changedEvent(self->data), self, fileDataHandler);
-    CbmdosFileEventArgs ea = { CFE_DATACHANGED };
-    Event_raise(self->changedEvent, &ea);
+    CbmdosInode_setData(self->inode, data);
 }
 
 SOEXPORT int CbmdosFile_exportRaw(const CbmdosFile *self, FILE *file)
 {
-    return writeHostFile(self->data, file);
+    return writeHostFile(CbmdosInode_rdata(self->inode), file);
 }
 
 SOEXPORT int CbmdosFile_exportPC64(const CbmdosFile *self, FILE *file)
@@ -208,7 +211,7 @@ SOEXPORT int CbmdosFile_exportPC64(const CbmdosFile *self, FILE *file)
     memcpy(header+8, self->name, self->nameLength);
     if (self->type == CFT_REL) header[25] = self->recordLength;
     if (fwrite(header, sizeof header, 1, file) != 1) return -1;
-    return writeHostFile(self->data, file);
+    return writeHostFile(CbmdosInode_rdata(self->inode), file);
 }
 
 SOEXPORT int CbmdosFile_import(CbmdosFile *self, FILE *file)
@@ -271,14 +274,8 @@ SOEXPORT int CbmdosFile_setRecordLength(CbmdosFile *self, uint8_t recordLength)
 
 SOEXPORT uint16_t CbmdosFile_realBlocks(const CbmdosFile *self)
 {
-    if ((self->invalidType < 0 && self->type == CFT_DEL) || !self->data)
-    {
-	return 0;
-    }
-    size_t size = FileData_size(self->data);
-    uint16_t blocks = size / 254;
-    if (size % 254) ++blocks;
-    return blocks;
+    if (self->type == CFT_DEL) return 0;
+    return CbmdosInode_blocks(self->inode);
 }
 
 SOEXPORT uint16_t CbmdosFile_blocks(const CbmdosFile *self)
@@ -303,19 +300,13 @@ SOEXPORT void CbmdosFile_setForcedBlocks(
 SOEXPORT CbmdosFsOptOverrides CbmdosFile_optOverrides(
         const CbmdosFile *self)
 {
-    return self->overrides;
+    return CbmdosInode_optOverrides(self->inode);
 }
 
 SOEXPORT void CbmdosFile_setOptOverrides(
         CbmdosFile *self, CbmdosFsOptOverrides overrides)
 {
-    if (overrides.mask != self->overrides.mask
-	    || overrides.flags != self->overrides.flags)
-    {
-	self->overrides = overrides;
-	CbmdosFileEventArgs args = { CFE_OPTOVERRIDESCHANGED };
-	Event_raise(self->changedEvent, &args);
-    }
+    CbmdosInode_setOptOverrides(self->inode, overrides);
 }
 
 SOEXPORT int CbmdosFile_locked(const CbmdosFile *self)
@@ -388,7 +379,7 @@ SOEXPORT void CbmdosFile_destroy(CbmdosFile *self)
     if (!self) return;
     free(self->name);
     Event_destroy(self->changedEvent);
-    FileData_destroy(self->data);
+    CbmdosInode_destroy(self->inode);
     free(self);
 }
 
