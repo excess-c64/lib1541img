@@ -22,21 +22,6 @@ C_CLASS_DECL(Event);
  */
 C_CLASS_DECL(CbmdosInode);
 
-/** default constructor.
- * Creates a new CbmdosInode
- * @memberof CbmdosInode
- * @returns the newly created CbmdosInode
- */
-DECLEXPORT CbmdosInode *CbmdosInode_create(void);
-
-/** copy constructor.
- * Creates a deep copy of an existing CbmdosInode
- * @memberof CbmdosInode
- * @param other the file to copy
- * @returns the copied CbmdosInode
- */
-DECLEXPORT CbmdosInode *CbmdosInode_clone(const CbmdosInode *other);
-
 /** The read-only contents of the file
  * @memberof CbmdosInode
  * @param self the cbmdos file
@@ -89,11 +74,5 @@ DECLEXPORT void CbmdosInode_setOptOverrides(
  * @returns an Event to register to / unregister from
  */
 DECLEXPORT Event *CbmdosInode_changedEvent(CbmdosInode *self);
-
-/** CbmdosInode destructor
- * @memberof CbmdosInode
- * @param self the cbmdos file
- */
-DECLEXPORT void CbmdosInode_destroy(CbmdosInode *self);
 
 #endif

@@ -12,6 +12,7 @@ struct CbmdosInode
     FileData *data;
     Event *changedEvent;
     CbmdosFsOptOverrides overrides;
+    unsigned int refcount;
 };
 
 static void fileDataHandler(void *receiver, int id, const void *sender,
@@ -26,22 +27,24 @@ static void fileDataHandler(void *receiver, int id, const void *sender,
     Event_raise(self->changedEvent, &ea);
 }
 
-SOEXPORT CbmdosInode *CbmdosInode_create(void)
+SOLOCAL CbmdosInode *CbmdosInode_create(void)
 {
     CbmdosInode *self = xmalloc(sizeof *self);
     self->data = FileData_create();
     self->changedEvent = Event_create(0, self);
     self->overrides = CFOO_NONE;
+    self->refcount = 0;
     Event_register(FileData_changedEvent(self->data), self, fileDataHandler);
     return self;
 }
 
-SOEXPORT CbmdosInode *CbmdosInode_clone(const CbmdosInode *other)
+SOLOCAL CbmdosInode *CbmdosInode_clone(const CbmdosInode *other)
 {
     CbmdosInode *self = xmalloc(sizeof *self);
     self->data = FileData_clone(other->data);
     self->changedEvent = Event_create(0, self);
     self->overrides = other->overrides;
+    self->refcount = 0;
     Event_register(FileData_changedEvent(self->data), self, fileDataHandler);
     return self;
 }
@@ -101,9 +104,26 @@ SOEXPORT Event *CbmdosInode_changedEvent(CbmdosInode *self)
     return self->changedEvent;
 }
 
-SOEXPORT void CbmdosInode_destroy(CbmdosInode *self)
+SOLOCAL void CbmdosInode_attach(CbmdosInode *self)
+{
+    ++self->refcount;
+}
+
+SOLOCAL void CbmdosInode_detach(CbmdosInode *self)
+{
+    if (!self->refcount)
+    {
+	logmsg(L_ERROR, "CbmdosInode_detach(): trying to detach an inode "
+		"that isn't attached.");
+	return;
+    }
+    --self->refcount;
+}
+
+SOLOCAL void CbmdosInode_tryDestroy(CbmdosInode *self)
 {
     if (!self) return;
+    if (self->refcount) return;
     Event_destroy(self->changedEvent);
     FileData_destroy(self->data);
     free(self);

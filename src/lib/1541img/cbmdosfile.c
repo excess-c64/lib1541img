@@ -3,7 +3,7 @@
 
 #include "util.h"
 #include "log.h"
-#include <1541img/cbmdosinode.h>
+#include "cbmdosinode.h"
 #include <1541img/event.h>
 #include <1541img/filedata.h>
 #include <1541img/hostfilereader.h>
@@ -379,7 +379,7 @@ SOEXPORT void CbmdosFile_destroy(CbmdosFile *self)
     if (!self) return;
     free(self->name);
     Event_destroy(self->changedEvent);
-    CbmdosInode_destroy(self->inode);
+    CbmdosInode_tryDestroy(self->inode);
     free(self);
 }
 
