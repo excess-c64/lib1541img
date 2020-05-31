@@ -63,19 +63,25 @@ static void inodeHandler(void *receiver, int id, const void *sender,
     }
 }
 
-SOEXPORT CbmdosFile *CbmdosFile_create(void)
+static CbmdosFile *CbmdosFile_baseCreate(CbmdosInode *inode)
 {
     CbmdosFile *self = xmalloc(sizeof *self);
     memset(self, 0, sizeof *self);
-    self->inode = CbmdosInode_create();
+    self->inode = inode;
     self->changedEvent = Event_create(0, self);
     self->type = CFT_PRG;
     self->invalidType = -1;
     self->closed = 1;
     self->forcedBlocks = 0xffff;
     self->recordLength = 254;
+    CbmdosInode_attach(self->inode);
     Event_register(CbmdosInode_changedEvent(self->inode), self, inodeHandler);
     return self;
+}
+
+SOEXPORT CbmdosFile *CbmdosFile_create(void)
+{
+    return CbmdosFile_baseCreate(CbmdosInode_create());
 }
 
 SOEXPORT CbmdosFile *CbmdosFile_clone(const CbmdosFile *other)
@@ -96,8 +102,14 @@ SOEXPORT CbmdosFile *CbmdosFile_clone(const CbmdosFile *other)
     const char *name = CbmdosFile_name(other, &len);
     CbmdosFile_setName(self, name, len);
     self->autoMapToLc = other->autoMapToLc;
+    CbmdosInode_attach(self->inode);
     Event_register(CbmdosInode_changedEvent(self->inode), self, inodeHandler);
     return self;
+}
+
+SOEXPORT CbmdosFile *CbmdosFile_link(CbmdosFile *other)
+{
+    return CbmdosFile_baseCreate(other->inode);
 }
 
 SOEXPORT CbmdosFileType CbmdosFile_type(const CbmdosFile *self)
@@ -379,6 +391,8 @@ SOEXPORT void CbmdosFile_destroy(CbmdosFile *self)
     if (!self) return;
     free(self->name);
     Event_destroy(self->changedEvent);
+    Event_unregister(CbmdosInode_changedEvent(self->inode), self, inodeHandler);
+    CbmdosInode_detach(self->inode);
     CbmdosInode_tryDestroy(self->inode);
     free(self);
 }

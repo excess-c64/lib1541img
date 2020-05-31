@@ -53,6 +53,14 @@ DECLEXPORT CbmdosFile *CbmdosFile_create(void);
  */
 DECLEXPORT CbmdosFile *CbmdosFile_clone(const CbmdosFile *other);
 
+/** link constructor, create a hard link.
+ * Creates a new CbmdosFile refering to the given other file's inode
+ * @memberof CbmdosFile
+ * @param other the file to link to
+ * @returns the newly created link
+ */
+DECLEXPORT CbmdosFile *CbmdosFile_link(CbmdosFile *other);
+
 /** Type of the file
  * @memberof CbmdosFile
  * @param self the cbmdos file
